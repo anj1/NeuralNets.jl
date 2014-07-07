@@ -15,7 +15,7 @@ t = [
 	]
 
 # network topology
-hidden_nodes = [4, 2]
+hidden_nodes = [3, 3]
 act   = [relu,  relu,  logis]
 actd  = [relud, relud, logisd]
 
