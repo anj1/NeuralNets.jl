@@ -18,7 +18,7 @@ type NNLayer{T}
 end
 
 function Base.show(io::IO, l::NNLayer)
-    print(io, summary(l),"\n","Activation functions:\n",l.a,", ",l.ad,"\n","Node weights:\n",l.w,"\n","Bias weights:\n",l.b)
+    print(io, summary(l),"\n","activation functions:\n",l.a,", ",l.ad,"\n","node weights:\n",l.w,"\n","bias weights:\n",l.b)
 end
 
 # Construct an NNLayer type from pre-existing data,
