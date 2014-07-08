@@ -17,6 +17,7 @@ function Base.show(io::IO, p::TrainingParams)
     print(io, "* maximum iterations: ", p.i,"\n")
     print(io, "* convergence criterion: ", p.c,"\n")
     print(io, "* learning rate: ", p.η,"\n")
+    print(io, "* momentum coefficient: ", p.m,"\n")
     print(io, "* train method: ", p.train_method,"\n")
 end
 
