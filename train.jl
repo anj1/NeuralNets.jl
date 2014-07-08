@@ -86,7 +86,7 @@ end
 # c:        convergence criterion
 # eval:     how often we evaluate the loss function (20)
 # verbose:  train with printed feedback about the error function (true)
-function gdmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=20, verbose::Bool=true)
+function gdmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=100, verbose::Bool=true)
     η, c, m = p.η, p.c, p.m
     i = e_old = Δ_old = 0
     e_new = loss(prop(mlp.net,x),t)
@@ -107,9 +107,10 @@ function gdmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=20, verbose::Bool
         end
         # check for convergence            
         converged = abs(e_new - e_old) < c
-        i > p.i && break
+        i >= p.i && break
     end
-    println("Training converged in less than $i iterations with average error: $(round((e_new/n),4)).")
+    convgstr = converged ? "converged" : "didn't converge"
+    println("Training $convgstr in less than $i iterations; average error: $(round((e_new/n),4)).")
     println("* learning rate η = $η")
     println("* momentum coefficient m = $m")
     println("* convergence criterion c = $c")

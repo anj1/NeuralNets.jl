@@ -23,7 +23,7 @@ actd  = [relud, relud, logisd]
 mlp = MLP(randn, layer_sizes, act, actd)
 
 # training parameters
-p = TrainingParams(1000, .0000001, .3, .6, :levenberg_marquardt)
+p = TrainingParams(1000, 1e-5, .3, .6, :levenberg_marquardt)
 
 # self-explanatory
 mlp1 = train(mlp, p, x, t)
