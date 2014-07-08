@@ -23,11 +23,15 @@ actd  = [relud, relud, logisd]
 mlp = MLP(randn, layer_sizes, act, actd)
 
 # training parameters
-p = TrainingParams(1000, .0000001, .3, .6, :levenberg_marquardt)
+p = TrainingParams(1000, 1e-7, .3, .6, :levenberg_marquardt)
 
 # self-explanatory
+# Train with external LM method
 mlp1 = train(mlp, p, x, t)
 @show prop(mlp1, x)
 
-mlp2 = gdmtrain(mlp, p, x, t)
+# Now try training with native GDM method
+p.train_method = :gdmtrain
+
+mlp2 = train(mlp, p, x, t)
 @show prop(mlp2, x)

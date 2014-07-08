@@ -94,7 +94,7 @@ function gdmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=20, verbose::Bool
     while !converged
         i += 1
         ∇,δ = backprop(mlp.net,x,t)
-        Δ_new = η*∇ + m*Δ_old  # calculate Δ weights
+        Δ_new = η*∇ .+ m*Δ_old  # calculate Δ weights
         mlp.net = mlp.net .- Δ_new      # update weights                       
         Δ_old = Δ_new           
         if i % eval == 0  # recalculate loss every eval number iterations
@@ -106,7 +106,7 @@ function gdmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=20, verbose::Bool
         end
         # check for convergence            
         abs(e_new - e_old) < c ? converged = true : nothing
-        maxiter > i ? converged = true : nothing
+        i > maxiter ? converged = true : nothing
     end
     println("Training converged in less than $i iterations with average error: $(round((e_new/n),4)).")
     println("* learning rate η = $η")
