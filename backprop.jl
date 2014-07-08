@@ -6,6 +6,8 @@ function prop(l, x)
 	end
 end
 
+prop(mlp::MLP,x) = prop(mlp.net,x)
+
 # backpropagation;
 # with memory for gradients pre-allocated.
 # (gradients returned in stor)
