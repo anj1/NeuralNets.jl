@@ -66,5 +66,5 @@ function backprop{T}(net::Vector{T}, x, t)
         unshift!(grad,NNLayer(δ*x',sum(δ,2),exp,exp))  # Weight gradient
         δ = l.w' * δ
     end
-    return ∇,δ
+    return grad,δ
 end
