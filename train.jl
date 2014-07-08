@@ -36,6 +36,7 @@ function train{T}(nn_in::T, p::TrainingParams, x, t)
 		return gdmtrain(nn_in, p, x, t)
 	end
 
+	# todo: make this thread-safe
 	nn  = deepcopy(nn_in)
 	nng = deepcopy(nn)
 
@@ -105,8 +106,8 @@ function gdmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=20, verbose::Bool
             end
         end
         # check for convergence            
-        abs(e_new - e_old) < c ? converged = true : nothing
-        i > p.i ? converged = true : nothing
+        converged = abs(e_new - e_old) < c
+        i > p.i && break
     end
     println("Training converged in less than $i iterations with average error: $(round((e_new/n),4)).")
     println("* learning rate η = $η")
