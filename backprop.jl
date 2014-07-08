@@ -49,3 +49,22 @@ function unflatten_net{NNType}(::Type{NNType}, buf::Vector, offs, parms, act, ac
 	end
 	L
 end
+
+
+# backprop(net,x,t) returns array of gradients and error for net 
+# todo: make gradient unshift! section more generic
+function backprop{T}(net::Vector{T}, x, t)
+    if length(net) == 0   	# Final layer
+        δ  = x .- t     	# Error (δ) is simply difference with target
+        grad = T[]        	# Initialize weight gradient array
+    else                	# Intermediate layers
+        l = net[1]
+        h = l * x
+        y = l.a(h)
+        grad,δ = backprop(net[2:end], y, t)
+        δ = l.ad(h) .* δ
+        unshift!(grad,NNLayer(δ*x',sum(δ,2),exp,exp))  # Weight gradient
+        δ = l.w' * δ
+    end
+    return ∇,δ
+end
