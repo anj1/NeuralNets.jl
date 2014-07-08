@@ -26,6 +26,8 @@ mlp = MLP(randn, layer_sizes, act, actd)
 p = TrainingParams(1000, .0000001, .3, .6, :levenberg_marquardt)
 
 # self-explanatory
-mlp = train(mlp, p, x, t)
+mlp1 = train(mlp, p, x, t)
+@show prop(mlp1.net, x)
 
-@show prop(mlp.net, x)
+mlp2 = gdmtrain(mlp, p, x, t)
+@show prop(mlp2.net, x)
