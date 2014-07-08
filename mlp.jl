@@ -38,8 +38,7 @@ function calc_offsets(::Type{NNLayer}, dims)
 	offs
 end
 
-# Function to train an artificial neural network using stochastic gradient decent with momentum
-# train(net,x,t,η,c[,m][; eval, verbose]) 
+# Train a MLP using stochastic gradient decent with momentum.
 # l:        array of neural network layers
 # x:        input data
 # t:        target data
@@ -55,9 +54,9 @@ function gdmtrain{T}(net::Vector{T},x,t,η::Real,c::Real,m::Real=0; eval::Int=20
     converged::Bool = false
     while !converged
         i += 1
-        ∇L,δ = backprop(net,x,t)
-        Δ_new = η*∇L + m*Δ_old  # calculatew Δ weights
-        net = net - Δ_new       # update weights                       
+        ∇,δ = backprop(net,x,t)
+        Δ_new = η*∇ + m*Δ_old  # calculatew Δ weights
+        net = net - Δ_new      # update weights                       
         Δ_old = Δ_new           
         if i % eval == 0  # recalculate loss every eval number iterations
             e_old = e_new
