@@ -8,7 +8,11 @@ type NNLayer{T}
 end
 
 function Base.show(io::IO, l::NNLayer)
-    print(io, summary(l),"\n","activation functions:\n",l.a,", ",l.ad,"\n","node weights:\n",l.w,"\n","bias weights:\n",l.b)
+    print(io, summary(l),"\n")
+    print(io, "activation functions:\n")
+    print(io, l.a,", ",l.ad,"\n")
+    print(io, "node weights:\n",l.w,"\n")
+    print(io, "bias weights:\n",l.b)
 end
 
 # In all operations between two NNLayers, the activations functions are taken from the first NNLayer
