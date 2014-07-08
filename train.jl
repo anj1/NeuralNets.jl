@@ -21,6 +21,11 @@ function train{T}(nn_in::T, p::TrainingParams, x, t)
 	# Levenberg-marquardt must be treated as a special case
 	# due to the fact that it needs the jacobian.
 
+	# hooks to call native functions
+	if p.train_method == :gdmtrain
+		return gdmtrain(nn_in, p, x, t)
+	end
+
 	nn  = deepcopy(nn_in)
 	nng = deepcopy(nn)
 
@@ -80,7 +85,7 @@ function gdmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=20, verbose::Bool
         i += 1
         ∇,δ = backprop(mlp.net,x,t)
         Δ_new = η*∇ + m*Δ_old  # calculatew Δ weights
-        mlp.net = mlp.net .- Δ_new      # update weights                       
+        mlp = mlp - Δ_new      # update weights                       
         Δ_old = Δ_new           
         if i % eval == 0  # recalculate loss every eval number iterations
             e_old = e_new
