@@ -86,7 +86,7 @@ end
 # eval:     how often we evaluate the loss function (20)
 # verbose:  train with printed feedback about the error function (true)
 function gdmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=20, verbose::Bool=true)
-    η, c, m, maxiter = p.η, p.c, p.m, p.i
+    η, c, m = p.η, p.c, p.m
     i = e_old = Δ_old = 0
     e_new = loss(prop(mlp.net,x),t)
     in_dim,n = size(x)
@@ -106,7 +106,7 @@ function gdmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=20, verbose::Bool
         end
         # check for convergence            
         abs(e_new - e_old) < c ? converged = true : nothing
-        maxiter > i ? converged = true : nothing
+        i > p.i ? converged = true : nothing
     end
     println("Training converged in less than $i iterations with average error: $(round((e_new/n),4)).")
     println("* learning rate η = $η")
