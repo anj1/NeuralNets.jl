@@ -6,13 +6,13 @@ require("train.jl")
 
 # xor training data
 x = [
-	0.0 1.0 0.0 1.0
-	0.0 0.0 1.0 1.0
-	]
+    0.0 1.0 0.0 1.0
+    0.0 0.0 1.0 1.0
+    ]
 
 t = [
-	0.0 1.0 1.0 0.0
-	]
+    0.0 1.0 1.0 0.0
+    ]
 
 # network topology
 layer_sizes = [2, 3, 3, 1]

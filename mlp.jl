@@ -43,6 +43,9 @@ function calc_offsets(::Type{NNLayer}, dims)
 	offs
 end
 
+# TODO: infer actd from act.
+# If activation function has known derivative, use that.
+# Otherwise, use automatic differentiation.
 function MLP(genf::Function, layer_sizes::Vector{Int}, act::Vector{Function}, actd::Vector{Function})
 	# some initializations
 	nlayers = length(layer_sizes) - 1
