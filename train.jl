@@ -86,7 +86,7 @@ end
 # c:        convergence criterion
 # eval:     how often we evaluate the loss function (20)
 # verbose:  train with printed feedback about the error function (true)
-function gdmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=100, verbose::Bool=true)
+function gdmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=10, verbose::Bool=true)
     η, c, m = p.η, p.c, p.m
     i = e_old = Δ_old = 0
     e_new = loss(prop(mlp.net,x),t)
@@ -101,9 +101,9 @@ function gdmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=100, verbose::Boo
         if i % eval == 0  # recalculate loss every eval number iterations
             e_old = e_new
             e_new = loss(prop(mlp.net,x),t)
-            if verbose == true
+        end
+        if i % 100 == 0 && verbose == true
                 println("i: $i\t Loss=$(round(e_new,6))\t ΔLoss=$(round((e_new - e_old),6))\t Avg. Loss=$(round((e_new/n),6))")
-            end
         end
         # check for convergence            
         converged = abs(e_new - e_old) < c
