@@ -20,12 +20,12 @@ act   = [relu,  relu,  logis]
 actd  = [relud, relud, logisd]
 
 L = train(NNLayer,
-		  randn,
-		  x,
-		  t,
-		  hidden_nodes,
-		  act,
-		  actd,
-		  :levenberg_marquardt)
+          randn,
+          x,
+          t,
+          hidden_nodes,
+          act,
+          actd,
+          :levenberg_marquardt)
 
 @show prop(L, x)

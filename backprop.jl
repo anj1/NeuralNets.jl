@@ -45,7 +45,7 @@ function unflatten_net{NNType}(::Type{NNType}, buf::Vector, offs, parms, act, ac
 	for i = 1 : nlayers
 		toff = i > 1 ? offs[i-1] : 0
 		L[i] = NNType(pbuf + toff*sizeof(eltype(buf)),
-					   parms[i], act[i], actd[i])
+		              parms[i], act[i], actd[i])
 	end
 	L
 end
