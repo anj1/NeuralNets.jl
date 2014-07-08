@@ -11,6 +11,15 @@ type TrainingParams
     train_method        # training method
 end
 
+function Base.show(io::IO, p::TrainingParams)
+    print(io, summary(p),"\n")
+    print(io, "Parameters for training a neural network:","\n")
+    print(io, "* maximum iterations: ", p.i,"\n")
+    print(io, "* convergence criterion: ", p.c,"\n")
+    print(io, "* learning rate: ", p.η,"\n")
+    print(io, "* train method: ", p.train_method,"\n")
+end
+
 function train{T}(nn_in::T, p::TrainingParams, x, t)
 	# todo: separate into training and test data
 	# todo: make unflatten_net a macro
