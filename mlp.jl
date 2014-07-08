@@ -17,6 +17,10 @@ type NNLayer{T}
 	ad::Function
 end
 
+function Base.show(io::IO, l::NNLayer)
+    print(io, summary(l),"\n","Activation function: ",l.a,"\n\n","Node weights: \n",l.w,"\n","Bias weights: \n",l.b)
+end
+
 # Construct an NNLayer type from pre-existing data,
 # keeping the references.
 function NNLayer{T}(buf::Ptr{T}, dims::(Int,Int), a::Function, ad::Function)
