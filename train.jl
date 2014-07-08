@@ -3,22 +3,15 @@ import Optim.levenberg_marquardt
 
 loss(y, t) = 0.5 * norm(y .- t).^2
 
-function train{T}(::Type{T}, genf, x, t, hidden_nodes, act, actd, train_method=:momentum_gradient_descent, η=.3, m=.6, c=.0000001)
-	# some initializations
-	nlayers = length(hidden_nodes) + 1
-	n = size(x,2)
-	in_dim = size(x,1)
-	out_dim = size(t,1)
-	nodes = vcat([in_dim],hidden_nodes,[out_dim]) # Buld array of weight matrices' dimensions
-	dims = [(nodes[i+1],nodes[i]) for i in 1:nlayers]
+type TrainingParams
+    i::Int              # iterations for convergence
+    c::Real             # convergence criterion
+    η::Real             # learning rate
+    m::Real             # momentum amount
+    train_method        # training method
+end
 
-	# offsets into the parameter vector
-	offs = calc_offsets(T, dims)
-
-	# our single data vector
-	buf = genf(offs[end])
-
-
+function train{T}(nn_in::T, p::TrainingParams, x, t)
 	# todo: separate into training and test data
 	# todo: make unflatten_net a macro
 	# todo: use specified parameters
@@ -27,40 +20,45 @@ function train{T}(::Type{T}, genf, x, t, hidden_nodes, act, actd, train_method=:
 	# train neural net using specified training algorithm.
 	# Levenberg-marquardt must be treated as a special case
 	# due to the fact that it needs the jacobian.
-	if train_method == :levenberg_marquardt
+
+	nn  = deepcopy(nn_in)
+	nng = deepcopy(nn)
+
+	function f(nd)
+		unflatten_net!(nn, vec(nd))
+		loss(prop(nn.net, x), t)
+	end
+	
+	if p.train_method == :levenberg_marquardt
+		out_dim = size(t,1)
 		out_dim==1 || throw("Error: LM only supported with one output neuron.")
 
-		function f(nd)
-			vec(prop(unflatten_net(T, vec(nd),  offs, dims, act, actd), x) .- t)
-		end
-
-		ln = offs[end]
+		ln = nn.offs[end]
+		n = size(x,2)
 		buf2 = Array(Float64, ln, n)
 		function g(nd)
+			unflatten_net!(nn, vec(nd))
 			for i = 1 : n
-				# todo: compute unflattenings just once
 				curbuf = pointer_to_array(pointer(buf2)+(i-1)*sizeof(Float64)*ln,(ln,))
-				backprop!(unflatten_net(T, vec(nd),   offs, dims, act, actd),
-				          unflatten_net(T, curbuf, offs, dims, act, actd), x[:,i], zeros(out_dim))
+				unflatten_net!(nng, curbuf)
+				backprop!(nn.net, nng.net, x[:,i], zeros(out_dim))
 			end
 			buf2'
 		end
 
-		r = levenberg_marquardt(f, g, buf)
+		r = levenberg_marquardt(nd -> f(nd).-vec(t), g, nn.buf)
 	else
-		function f(nd)
-			loss(prop( unflatten_net(T, nd,  offs, dims, act, actd), x), t)
-		end
-
 		function g!(nd, ndg)
-			backprop!(unflatten_net(T, nd,  offs, dims, act, actd),
-			          unflatten_net(T, ndg, offs, dims, act, actd), x,  t)
+			unflatten_net!(nn, nd)
+			unflatten_net!(nng, ndg)
+			backprop!(nn.net, nng.net, x,  t)
 		end
 
-		r = optimize(f, g!, buf, method=train_method)
+		r = optimize(f, g!, nn.buf, method=p.train_method)
 	end
 
-	unflatten_net(T, r.minimum, offs, dims, act, actd)
+	unflatten_net!(nn, r.minimum)
+	nn
 end
 
 # Train a MLP using stochastic gradient decent with momentum.
@@ -72,20 +70,21 @@ end
 # c:        convergence criterion
 # eval:     how often we evaluate the loss function (20)
 # verbose:  train with printed feedback about the error function (true)
-function gdmtrain{T}(net::Vector{T},x,t,η::Real,c::Real,m::Real=0; eval::Int=20, verbose::Bool=true)
+function gdmtrain{T}(mlp::Vector{T}, p::TrainingParams, x, t; eval::Int=20, verbose::Bool=true)
+	η, c, m = p.η, p.c, p.m
     i = e_old = Δ_old = 0
-    e_new = loss(prop(net,x),t)
+    e_new = loss(prop(mlp.net,x),t)
     in_dim,n = size(x)
     converged::Bool = false
     while !converged
         i += 1
-        ∇,δ = backprop(net,x,t)
+        ∇,δ = backprop(mlp.net,x,t)
         Δ_new = η*∇ + m*Δ_old  # calculatew Δ weights
-        net = net - Δ_new      # update weights                       
+        mlp = mlp - Δ_new      # update weights                       
         Δ_old = Δ_new           
         if i % eval == 0  # recalculate loss every eval number iterations
             e_old = e_new
-            e_new = loss(prop(net,x),t)
+            e_new = loss(prop(mlp.net,x),t)
             if verbose == true
                 println("i: $i\t Loss=$(round(e_new,6))\t ΔLoss=$(round((e_new - e_old),6))\t Avg. Loss=$(round((e_new/n),6))")
             end
@@ -97,5 +96,5 @@ function gdmtrain{T}(net::Vector{T},x,t,η::Real,c::Real,m::Real=0; eval::Int=20
     println("* learning rate η = $η")
     println("* momentum coefficient m = $m")
     println("* convergence criterion c = $c")
-    return net
+    return mlp
 end

@@ -33,24 +33,6 @@ function backprop!{T}(l::Vector{T}, stor::Vector{T}, x, t)
 	end
 end
 
-# Given a flattened vector (buf), and a list of
-# offsets into that vector (for each layer), unflatten
-# the vector into a list of NN layers.
-# parms is a list of net-specific parameter tuples.
-# act and actd are a list of activation functions
-function unflatten_net{NNType}(::Type{NNType}, buf::Vector, offs, parms, act, actd)
-	nlayers = length(parms)
-	L = Array(NNType,nlayers)
-	pbuf = pointer(buf)
-	for i = 1 : nlayers
-		toff = i > 1 ? offs[i-1] : 0
-		L[i] = NNType(pbuf + toff*sizeof(eltype(buf)),
-		              parms[i], act[i], actd[i])
-	end
-	L
-end
-
-
 # backprop(net,x,t) returns array of gradients and error for net 
 # todo: make gradient unshift! section more generic
 function backprop{T}(net::Vector{T}, x, t)

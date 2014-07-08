@@ -15,17 +15,17 @@ t = [
 	]
 
 # network topology
-hidden_nodes = [3, 3]
+layer_sizes = [2, 3, 3, 1]
 act   = [relu,  relu,  logis]
 actd  = [relud, relud, logisd]
 
-L = train(NNLayer,
-          randn,
-          x,
-          t,
-          hidden_nodes,
-          act,
-          actd,
-          :levenberg_marquardt)
+# initialize net
+mlp = MLP(randn, layer_sizes, act, actd)
 
-@show prop(L, x)
+# training parameters
+p = TrainingParams(1000, .0000001, .3, .6, :levenberg_marquardt)
+
+# self-explanatory
+mlp = train(mlp, p, x, t)
+
+@show prop(mlp.net, x)
