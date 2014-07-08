@@ -70,7 +70,7 @@ end
 # c:        convergence criterion
 # eval:     how often we evaluate the loss function (20)
 # verbose:  train with printed feedback about the error function (true)
-function gdmtrain{T}(mlp::Vector{T}, p::TrainingParams, x, t; eval::Int=20, verbose::Bool=true)
+function gdmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=20, verbose::Bool=true)
 	η, c, m = p.η, p.c, p.m
     i = e_old = Δ_old = 0
     e_new = loss(prop(mlp.net,x),t)
