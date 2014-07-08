@@ -80,7 +80,7 @@ function gdmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=20, verbose::Bool
         i += 1
         ∇,δ = backprop(mlp.net,x,t)
         Δ_new = η*∇ + m*Δ_old  # calculatew Δ weights
-        mlp = mlp - Δ_new      # update weights                       
+        mlp.net = mlp.net .- Δ_new      # update weights                       
         Δ_old = Δ_new           
         if i % eval == 0  # recalculate loss every eval number iterations
             e_old = e_new
