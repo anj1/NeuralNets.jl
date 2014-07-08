@@ -1,5 +1,15 @@
 # Types and function definitions for multi-layer perceptrons
 
+# Top level MLP type for predicting things and diagnosing convergence
+type MLP{T}
+    net::Vector{T}
+    hidden::Vector      # topology of hidden nodes
+    i::Int              # iterations for convergence
+    c::Real             # convergence criterion
+    η::Real             # learning rate
+    # more to come...
+end
+
 type NNLayer{T}
 	w::Matrix{T}
 	b::Vector{T}
