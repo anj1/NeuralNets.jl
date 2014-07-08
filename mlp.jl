@@ -17,13 +17,12 @@ end
 
 # In all operations between two NNLayers, the activations functions are taken from the first NNLayer
 *(l::NNLayer, x::Array) = l.w*x .+ l.b
-
-# in flattened representation, these aren't needed.
-# .*(c::Number, l::NNLayer) = NNLayer(c*l.w, c*l.b, l.a, l.ad)            
-# -(l::NNLayer, m::NNLayer) = NNLayer(l.w - m.w, l.b - m.b, l.a, l.ad)    
-# -(l::NNLayer, c::Number) = NNLayer(l.w .- c, l.b .- c, l.a, l.ad)       
-# +(l::NNLayer, m::NNLayer) = NNLayer(l.w + m.w, l.b + m.b, l.a, l.ad)  
-# +(l::NNLayer, c::Number) = NNLayer(l.w .+ c, l.b .+ c, l.a, l.ad)   
+*(l::NNLayer, x::Array) = l.w*x .+ l.b
+.*(c::Number, l::NNLayer) = NNLayer(c*l.w, c*l.b, l.a, l.ad)            
+-(l::NNLayer, m::NNLayer) = NNLayer(l.w - m.w, l.b - m.b, l.a, l.ad)    
+-(l::NNLayer, c::Number) = NNLayer(l.w .- c, l.b .- c, l.a, l.ad)       
++(l::NNLayer, m::NNLayer) = NNLayer(l.w + m.w, l.b + m.b, l.a, l.ad)  
++(l::NNLayer, c::Number) = NNLayer(l.w .+ c, l.b .+ c, l.a, l.ad)    
 
 # For the NNLayer type, given a set of layer dimensions,
 # compute offsets into the flattened vector.
@@ -37,4 +36,42 @@ function calc_offsets(::Type{NNLayer}, dims)
 		offs[i] = sumd
 	end
 	offs
+end
+
+# Function to train an artificial neural network using stochastic gradient decent with momentum
+# train(net,x,t,η,c[,m][; eval, verbose]) 
+# l:        array of neural network layers
+# x:        input data
+# t:        target data
+# η:        learning rate
+# m:        momentum coefficient
+# c:        convergence criterion
+# eval:     how often we evaluate the loss function (20)
+# verbose:  train with printed feedback about the error function (true)
+function gdmtrain{T}(net::Vector{T},x,t,η::Real,c::Real,m::Real=0; eval::Int=20, verbose::Bool=true)
+    i = e_old = Δ_old = 0
+    e_new = loss(prop(net,x),t)
+    in_dim,n = size(x)
+    converged::Bool = false
+    while !converged
+        i += 1
+        ∇L,δ = backprop(net,x,t)
+        Δ_new = η*∇L + m*Δ_old  # calculatew Δ weights
+        net = net - Δ_new       # update weights                       
+        Δ_old = Δ_new           
+        if i % eval == 0  # recalculate loss every eval number iterations
+            e_old = e_new
+            e_new = loss(prop(net,x),t)
+            if verbose == true
+                println("i: $i\t Loss=$(round(e_new,6))\t ΔLoss=$(round((e_new - e_old),6))\t Avg. Loss=$(round((e_new/n),6))")
+            end
+        end
+        # check for convergence            
+        abs(e_new - e_old) < c ? converged = true : nothing
+    end
+    println("Training converged in less than $i iterations with average error: $(round((e_new/n),4)).")
+    println("* learning rate η = $η")
+    println("* momentum coefficient m = $m")
+    println("* convergence criterion c = $c")
+    return net
 end
