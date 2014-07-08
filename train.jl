@@ -1,4 +1,5 @@
 using Optim
+import Optim.levenberg_marquardt
 
 loss(y, t) = 0.5 * norm(y .- t).^2
 
@@ -17,14 +18,43 @@ function train{T}(::Type{T}, genf, x, t, hidden_nodes, act, actd, train_method=:
 	# our single data vector
 	buf = genf(offs[end])
 
+
 	# todo: separate into training and test data
 	# todo: make unflatten_net a macro
 	# todo: use specified parameters
-	r=optimize( nd      -> loss(prop( unflatten_net(T, nd,  offs, dims, act, actd), x), t),
-	           (nd,ndg) ->  backprop!(unflatten_net(T, nd,  offs, dims, act, actd),
-	                                  unflatten_net(T, ndg, offs, dims, act, actd), x,  t),
-			   buf,
-			   method=train_method)
+
+	# for levenberg-marquardt
+	if train_method == :levenberg_marquardt
+		out_dim==1 || throw("Error: LM only supported with one output neuron.")
+
+		function f(nd)
+			vec(prop(unflatten_net(T, vec(nd),  offs, dims, act, actd), x) .- t)
+		end
+
+		ln = offs[end]
+		buf2 = Array(Float64, ln, n)
+		function g(nd)
+			for i = 1 : n
+				curbuf = pointer_to_array(pointer(buf2)+(i-1)*sizeof(Float64)*ln,(ln,))
+				backprop!(unflatten_net(T, vec(nd),   offs, dims, act, actd),
+				          unflatten_net(T, curbuf, offs, dims, act, actd), x[:,i], zeros(out_dim))
+			end
+			buf2'
+		end
+
+		r = levenberg_marquardt(f, g, buf)
+	else
+		function f(nd)
+			loss(prop( unflatten_net(T, nd,  offs, dims, act, actd), x), t)
+		end
+
+		function g!(nd, ndg)
+			backprop!(unflatten_net(T, nd,  offs, dims, act, actd),
+			          unflatten_net(T, ndg, offs, dims, act, actd), x,  t)
+		end
+
+		r = optimize(f, g!, buf, method=train_method)
+	end
 
 	unflatten_net(T, r.minimum, offs, dims, act, actd)
 end

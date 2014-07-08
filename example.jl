@@ -26,6 +26,6 @@ L = train(NNLayer,
 		  hidden_nodes,
 		  act,
 		  actd,
-		  :momentum_gradient_descent)
+		  :levenberg_marquardt)
 
 @show prop(L, x)
