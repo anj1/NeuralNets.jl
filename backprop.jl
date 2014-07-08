@@ -9,27 +9,27 @@ end
 # backpropagation;
 # with memory for gradients pre-allocated.
 # (gradients returned in stor)
-function backprop!{T}(l::Vector{T}, stor::Vector{T}, x, t)
-	if length(l) == 0 # Final layer
+function backprop!{T}(net::Vector{T}, stor::Vector{T}, x, t)
+	if length(net) == 0 # Final layer
 		# Error is simply difference with target
 		x .- t
 	else # Intermediate layers
 		# current layer
-		head = l[1]
+		l = net[1]
 
 		# forward activation
-		h = head * x
-		y = head.a(h)
+		h = l * x
+		y = l.a(h)
 
 		# compute error recursively
-		δ = head.ad(h) .* backprop!(l[2:end], stor[2:end], y, t)
+		δ = l.ad(h) .* backprop!(net[2:end], stor[2:end], y, t)
 
 		# calculate weight and bias gradients
 		stor[1].w[:] = δ*x'
 		stor[1].b[:] = sum(δ,2)
 
 		# propagate error
-		head.w' * δ
+		l.w' * δ
 	end
 end
 
