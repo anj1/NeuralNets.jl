@@ -17,11 +17,11 @@ function backprop!{T}(l::Vector{T}, stor::Vector{T}, x, t)
 		# current layer
 		head = l[1]
 
-        # forward activation
+		# forward activation
 		h = head * x
 		y = head.a(h)
 
-        # compute error recursively
+		# compute error recursively
 		δ = head.ad(h) .* backprop!(l[2:end], stor[2:end], y, t)
 
 		# calculate weight and bias gradients

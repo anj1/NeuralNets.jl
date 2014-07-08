@@ -22,8 +22,11 @@ function train{T}(::Type{T}, genf, x, t, hidden_nodes, act, actd, train_method=:
 	# todo: separate into training and test data
 	# todo: make unflatten_net a macro
 	# todo: use specified parameters
+	# todo: don't discard r; use the parameters as diagnostics
 
-	# for levenberg-marquardt
+	# train neural net using specified training algorithm.
+	# Levenberg-marquardt must be treated as a special case
+	# due to the fact that it needs the jacobian.
 	if train_method == :levenberg_marquardt
 		out_dim==1 || throw("Error: LM only supported with one output neuron.")
 
@@ -35,6 +38,7 @@ function train{T}(::Type{T}, genf, x, t, hidden_nodes, act, actd, train_method=:
 		buf2 = Array(Float64, ln, n)
 		function g(nd)
 			for i = 1 : n
+				# todo: compute unflattenings just once
 				curbuf = pointer_to_array(pointer(buf2)+(i-1)*sizeof(Float64)*ln,(ln,))
 				backprop!(unflatten_net(T, vec(nd),   offs, dims, act, actd),
 				          unflatten_net(T, curbuf, offs, dims, act, actd), x[:,i], zeros(out_dim))
