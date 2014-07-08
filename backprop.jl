@@ -1,8 +1,8 @@
-function prop(l, x)
-	if length(l) == 0 # First layer
+function prop(net, x)
+	if length(net) == 0 # First layer
 		x
 	else # Intermediate layers
-		l[end].a(l[end] * prop(l[1:end-1], x))
+		net[end].a(net[end] * prop(net[1:end-1], x))
 	end
 end
 
