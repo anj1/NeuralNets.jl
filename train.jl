@@ -26,7 +26,7 @@ function train{T}(nn_in::T, p::TrainingParams, x, t)
 
 	function f(nd)
 		unflatten_net!(nn, vec(nd))
-		loss(prop(nn.net, x), t)
+		prop(nn.net, x).-t
 	end
 	
 	if p.train_method == :levenberg_marquardt
@@ -46,7 +46,7 @@ function train{T}(nn_in::T, p::TrainingParams, x, t)
 			buf2'
 		end
 
-		r = levenberg_marquardt(nd -> f(nd).-vec(t), g, nn.buf)
+		r = levenberg_marquardt(nd -> vec(f(nd)), g, nn.buf)
 	else
 		function g!(nd, ndg)
 			unflatten_net!(nn, nd)
@@ -54,7 +54,7 @@ function train{T}(nn_in::T, p::TrainingParams, x, t)
 			backprop!(nn.net, nng.net, x,  t)
 		end
 
-		r = optimize(f, g!, nn.buf, method=p.train_method)
+		r = optimize(nd -> 0.5*norm(f(nd).^2), g!, nn.buf, method=p.train_method)
 	end
 
 	unflatten_net!(nn, r.minimum)
