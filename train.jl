@@ -21,7 +21,7 @@ function Base.show(io::IO, p::TrainingParams)
     print(io, "* train method: ", p.train_method,"\n")
 end
 
-function train{T}(nn_in::T, p::TrainingParams, x, t)
+function train{T}(nn_in::T, p::TrainingParams, x, t; verbose::Bool=true)
 	# todo: separate into training and test data
 	# todo: make unflatten_net a macro
 	# todo: use specified parameters
@@ -33,7 +33,7 @@ function train{T}(nn_in::T, p::TrainingParams, x, t)
 
 	# hooks to call native functions
 	if p.train_method == :gdmtrain
-		return gdmtrain(nn_in, p, x, t)
+		return gdmtrain(nn_in, p, x, t, 10, verbose)
 	end
 
 	# todo: make this thread-safe
@@ -70,7 +70,7 @@ function train{T}(nn_in::T, p::TrainingParams, x, t)
 			backprop!(nn.net, nng.net, x,  t)
 		end
 
-		r = optimize(nd -> 0.5*norm(f(nd).^2), g!, nn.buf, method=p.train_method)
+		r = optimize(nd -> 0.5*norm(f(nd).^2), g!, nn.buf, method=p.train_method, grtol=p.c, iterations=p.i, show_trace=verbose)
 	end
 
 	unflatten_net!(nn, r.minimum)
@@ -109,7 +109,7 @@ function gdmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=10, verbose::Bool
             e_new = loss(prop(mlp.net,x),t)
             converged = abs(e_new - e_old) < c # check if converged
         end
-        if i % 100 == 0 && verbose == true
+        if verbose && i % 100 == 0
                 println("i: $i\t Loss=$(round(e_new,6))\t ΔLoss=$(round((e_new - e_old),6))\t Avg. Loss=$(round((e_new/n),6))")
         end        
         i >= p.i && break # check if hit the max iterations limit 
