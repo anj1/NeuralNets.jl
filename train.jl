@@ -143,7 +143,7 @@ function lmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=10, verbose::Bool=
     while !converged
         i += 1          
         # Start of the update step
-        H = kron(J,J)
+        H = [kron(d[i],d[i]) for i in length(d)] 
         while true 
             j += 1 
             ∇,δ = backprop(mlp.net,x,t)

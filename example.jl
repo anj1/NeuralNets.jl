@@ -31,3 +31,10 @@ mlp1 = train(mlp, p, x, t)
 
 mlp2 = gdmtrain(mlp, p, x, t)
 @show prop(mlp2, x)
+
+
+# just some stuff for developing lmtrain
+
+w = mlp.net[1].w
+b = w
+H = b * b'
