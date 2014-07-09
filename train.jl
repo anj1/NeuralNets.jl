@@ -100,7 +100,7 @@ function gdmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=10, verbose::Bool
         # to economise on code to handle convergence notifications
         # flexibility with verification sets, etc...
         ∇,δ = backprop(mlp.net,x,t)
-        Δw_new = η*∇ + m*Δ_old  # calculate Δ weights
+        Δw_new = η*∇ + m*Δw_old  # calculate Δ weights
         # End of the update calculation step            
         mlp.net = mlp.net .- Δw_new      # update weights                       
         Δw_old = Δw_new 
@@ -138,22 +138,22 @@ end
 function lmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=10, verbose::Bool=true)
     η, c, m = p.η, p.c, p.m
     i = e_old = Δ_old = 0
-    λ = 100     # some large number to ensure we start off with vanilla gradient descent
-    H = 42      # temporary value, this line shouldn't exist for too long 
+    λ = 1e-2
     converged::Bool = false    
     while !converged
         i += 1          
-        # Start of the update step      
+        # Start of the update step
+        H = kron(J,J)
         while true 
             j += 1 
             ∇,δ = backprop(mlp.net,x,t)
-            Δw = inv(H .+ λ *diagm(diag(H))) * ∇        # caclulate new setp
+            Δw = inv(H .+ λ*diagm(diag(H))) * ∇        # caclulate new setp
             e_new = loss(prop(mlp.net - Δw_new,x),t)    # test new update
             Δe = e_new - e_old
             if Δe > 0           
-                λ *= 10                          # if new step -> error goes up, increase λ and try again
+                λ *= 10   # if new step -> error goes up, increase λ and try again
             else                                         
-                λ /= 10                          # if new step -> error goes down, decrease λ
+                λ /= 10   # if new step -> error goes down, decrease λ
                 break
             end
             if j - i > 1e4
@@ -163,7 +163,7 @@ function lmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=10, verbose::Bool=
             end
         end
         # End of the update calculation step            
-        mlp.net = mlp.net .- Δw_new                  # accept step, update weights               
+        mlp.net = mlp.net .- Δw_new     # accept step, update weights               
         Δw_old = Δw_new
         if i % eval == 0  # recalculate loss every eval number iterations
             e_old = e_new
@@ -171,7 +171,7 @@ function lmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=10, verbose::Bool=
             converged = abs(e_new - e_old) < c # check if converged
         end
         if i % 100 == 0 && verbose == true
-                println("i: $i\t Loss=$(round(e_new,6))\t ΔLoss=$(round((e_new - e_old),6))\t Avg. Loss=$(round((e_new/n),6))")
+            println("i: $i\t Loss=$(round(e_new,6))\t ΔLoss=$(round((e_new - e_old),6))\t Avg. Loss=$(round((e_new/n),6))")
         end        
         i >= p.i && break # check if hit the max iterations limit 
     end
