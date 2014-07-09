@@ -142,7 +142,7 @@ function lmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=10, verbose::Bool=
     H = 42      # temporary value, this line shouldn't exist for too long 
     converged::Bool = false    
     while !converged
-    i += 1          
+        i += 1          
         # Start of the update step      
         while true 
             j += 1 
