@@ -101,13 +101,12 @@ function gdmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=10, verbose::Bool
         if i % eval == 0  # recalculate loss every eval number iterations
             e_old = e_new
             e_new = loss(prop(mlp.net,x),t)
+            converged = abs(e_new - e_old) < c # check if converged
         end
         if i % 100 == 0 && verbose == true
                 println("i: $i\t Loss=$(round(e_new,6))\t ΔLoss=$(round((e_new - e_old),6))\t Avg. Loss=$(round((e_new/n),6))")
-        end
-        # check for convergence            
-        converged = abs(e_new - e_old) < c
-        i >= p.i && break
+        end        
+        i >= p.i && break # check if hit the max iterations limit 
     end
     convgstr = converged ? "converged" : "didn't converge"
     println("Training $convgstr in less than $i iterations; average error: $(round((e_new/n),4)).")
