@@ -163,7 +163,7 @@ function lmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=10, verbose::Bool=
             end
         end
         # End of the update calculation step            
-        mlp.net = mlp.net .- Δw_new                  # accept step, update weights               
+        mlp.net = mlp.net .- Δw_new              # accept step, update weights               
         Δw_old = Δw_new
         if i % eval == 0  # recalculate loss every eval number iterations
             e_old = e_new
