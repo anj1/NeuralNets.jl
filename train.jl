@@ -138,7 +138,7 @@ end
 function lmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=10, verbose::Bool=true)
     η, c, m = p.η, p.c, p.m
     i = e_old = Δ_old = 0
-    λ = 100     # some large number to ensure we start off with vanilla gradient descent
+    λ = 1e-2
     H = 42      # temporary value, this line shouldn't exist for too long 
     converged::Bool = false    
     while !converged
