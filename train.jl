@@ -147,7 +147,7 @@ function lmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=10, verbose::Bool=
         while true 
             j += 1 
             ∇,δ = backprop(mlp.net,x,t)
-            Δw = inv(H .+ λ *diagm(diag(H))) * ∇        # try a new setp
+            Δw = inv(H .+ λ *diagm(diag(H))) * ∇        # caclulate new setp
             e_new = loss(prop(mlp.net - Δw_new,x),t)    # test new update
             Δe = e_new - e_old
             if Δe > 0           
@@ -156,6 +156,12 @@ function lmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=10, verbose::Bool=
                 λ /= 10                          # if new step -> error goes down, decrease λ
                 break
             end
+            if j - i > 1e4
+                println("Oh god something's fucked up here")
+                println("j= $j, i= $i")
+                break
+            end
+        end
         # End of the update calculation step            
         mlp.net = mlp.net .- Δw_new                  # accept step, update weights               
         Δw_old = Δw_new
