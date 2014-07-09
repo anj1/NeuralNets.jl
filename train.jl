@@ -100,7 +100,7 @@ function gdmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=10, verbose::Bool
         # to economise on code to handle convergence notifications
         # flexibility with verification sets, etc...
         ∇,δ = backprop(mlp.net,x,t)
-        Δw_new = η*∇ + m*Δw_old  # calculate Δ weights
+        Δw_new = η*∇ .+ m*Δw_old  # calculate Δ weights
         # End of the update calculation step            
         mlp.net = mlp.net .- Δw_new      # update weights                       
         Δw_old = Δw_new 
