@@ -78,26 +78,32 @@ function train{T}(nn_in::T, p::TrainingParams, x, t)
 end
 
 # Train a MLP using stochastic gradient decent with momentum.
-# l:        array of neural network layers
+# mlp.net:  array of neural network layers
 # x:        input data
 # t:        target data
 # η:        learning rate
 # m:        momentum coefficient
 # c:        convergence criterion
-# eval:     how often we evaluate the loss function (20)
-# verbose:  train with printed feedback about the error function (true)
+# eval:     how often we evaluate the loss function
+# verbose:  train with printed feedback about the error function
 function gdmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=10, verbose::Bool=true)
     η, c, m = p.η, p.c, p.m
-    i = e_old = Δ_old = 0
+    i = e_old = Δw_old = 0
     e_new = loss(prop(mlp.net,x),t)
     n = size(x,2)
     converged::Bool = false
     while !converged
         i += 1
+        # Start of the update step
+        # eventually the update step here should be the sole definition of gdmtrain()
+        # and we can roll all of the ancillary things in to train()
+        # to economise on code to handle convergence notifications
+        # flexibility with verification sets, etc...
         ∇,δ = backprop(mlp.net,x,t)
-        Δ_new = η*∇ + m*Δ_old  # calculate Δ weights
-        mlp.net = mlp.net .- Δ_new      # update weights                       
-        Δ_old = Δ_new           
+        Δw_new = η*∇ + m*Δ_old  # calculate Δ weights
+        # End of the update calculation step            
+        mlp.net = mlp.net .- Δw_new      # update weights                       
+        Δw_old = Δw_new 
         if i % eval == 0  # recalculate loss every eval number iterations
             e_old = e_new
             e_new = loss(prop(mlp.net,x),t)
@@ -114,4 +120,53 @@ function gdmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=10, verbose::Bool
     println("* momentum coefficient m = $m")
     println("* convergence criterion c = $c")
     return mlp
+end
+
+# Train a MLP using Levenberg-Marquardt optimisation.
+# mlp.net:  array of neural network layers
+# x:        input data
+# t:        target data
+# η:        learning rate
+# m:        momentum coefficient
+# c:        convergence criterion
+# λ:        mixing coefficient, large λ -> gradient descent, small λ -> quadratic approximated hessian
+# i:        number of accepted steps
+# j:        number of attempts at finding steps
+# eval:     how often we evaluate the loss function
+# verbose:  train with printed feedback about the error function
+# TODO need to calculate hessian approximation H
+function lmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=10, verbose::Bool=true)
+    η, c, m = p.η, p.c, p.m
+    i = e_old = Δ_old = 0
+    λ = 100     # some large number to ensure we start off with vanilla gradient descent
+    H = 42      # temporary value, this line shouldn't exist for too long 
+    converged::Bool = false    
+    while !converged
+    i += 1          
+        # Start of the update step      
+        while true 
+            j += 1 
+            ∇,δ = backprop(mlp.net,x,t)
+            Δw = inv(H .+ λ *diagm(diag(H))) * ∇        # try a new setp
+            e_new = loss(prop(mlp.net - Δw_new,x),t)    # test new update
+            Δe = e_new - e_old
+            if Δe > 0           
+                λ *= 10                          # if new step -> error goes up, increase λ and try again
+            else                                         
+                λ /= 10                          # if new step -> error goes down, decrease λ
+                break
+            end
+        # End of the update calculation step            
+        mlp.net = mlp.net .- Δw_new                  # accept step, update weights               
+        Δw_old = Δw_new
+        if i % eval == 0  # recalculate loss every eval number iterations
+            e_old = e_new
+            e_new = loss(prop(mlp.net,x),t)
+            converged = abs(e_new - e_old) < c # check if converged
+        end
+        if i % 100 == 0 && verbose == true
+                println("i: $i\t Loss=$(round(e_new,6))\t ΔLoss=$(round((e_new - e_old),6))\t Avg. Loss=$(round((e_new/n),6))")
+        end        
+        i >= p.i && break # check if hit the max iterations limit 
+    end
 end
