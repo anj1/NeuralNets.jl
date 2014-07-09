@@ -90,7 +90,7 @@ function gdmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=10, verbose::Bool
     η, c, m = p.η, p.c, p.m
     i = e_old = Δ_old = 0
     e_new = loss(prop(mlp.net,x),t)
-    in_dim,n = size(x)
+    n = size(x,2)
     converged::Bool = false
     while !converged
         i += 1
