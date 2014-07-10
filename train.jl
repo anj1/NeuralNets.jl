@@ -71,7 +71,7 @@ function train{T}(nn_in::T, p::TrainingParams, x, t; verbose::Bool=true)
 			backprop!(nn.net, nng.net, x,  t)
 		end
 
-		r = optimize(nd -> 0.5*norm(f(nd).^2), g!, nn.buf, method=p.train_method, grtol=p.c, iterations=p.i, show_trace=verbose)
+		r = optimize(nd -> 0.5*norm(f(nd)), g!, nn.buf, method=p.train_method, grtol=p.c, iterations=p.i, show_trace=verbose)
 	end
 
 	unflatten_net!(nn, r.minimum)
