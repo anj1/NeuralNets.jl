@@ -9,9 +9,9 @@ end
 prop(mlp::MLP,x) = prop(mlp.net,x)
 
 # add some 'missing' functionality to ArrayViews
-function setindex!(dst::ContiguousView, src::Array{Float64,1}, idx::UnitRange{Int64})
+function setindex!{T}(dst::ContiguousView, src::Vector{T}, idx::UnitRange)
 	offs = dst.offset
-	dst.arr[offs+1:offs+dst.len] = src
+	dst.arr[offs+idx.start:offs+idx.stop] = src
 end
 
 # backpropagation;
