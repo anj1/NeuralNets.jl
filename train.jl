@@ -111,7 +111,7 @@ function gdmtrain(mlp::MLP, p::TrainingParams, x, t, eval::Int=10, verbose::Bool
             converged = abs(e_new - e_old) < c # check if converged
         end
         if verbose && i % 100 == 0
-            println("i: $i\t Loss=$(round(e_new,6))\t ΔLoss=$(round((e_new - e_old),6))\t Avg. Loss=$(round((e_new/n),6))")
+            println("i: $i\tLoss=$(round(e_new,6))\tΔLoss=$(round((e_new - e_old),6))\tAvg. Loss=$(round((e_new/n),6))")
         end        
         i >= p.i && break # check if hit the max iterations limit 
     end
