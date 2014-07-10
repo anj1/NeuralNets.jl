@@ -1,5 +1,6 @@
 using Optim
 import Optim.levenberg_marquardt
+using ArrayViews
 
 loss(y, t) = 0.5 * norm(y .- t).^2
 
@@ -55,7 +56,7 @@ function train{T}(nn_in::T, p::TrainingParams, x, t; verbose::Bool=true)
 		function g(nd)
 			unflatten_net!(nn, vec(nd))
 			for i = 1 : n
-				jacobcol = pointer_to_array(pointer(jacobian)+(i-1)*sizeof(Float64)*ln,(ln,))
+				jacobcol = view(jacobian, :, i)
 				unflatten_net!(nng, jacobcol)
 				backprop!(nn.net, nng.net, x[:,i], zeros(out_dim))
 			end

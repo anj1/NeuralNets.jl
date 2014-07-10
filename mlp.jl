@@ -28,7 +28,7 @@ end
 type MLP
     net::Vector{NNLayer}
     dims::Vector{(Int,Int)}  # topology of net
-    buf::Vector      # in-place data store
+    buf::AbstractVector      # in-place data store
     offs::Vector{Int}    # indices into in-place store
     trained::Bool
 end
@@ -72,7 +72,7 @@ end
 # Given a flattened vector (buf), update the neural
 # net so that each weight and bias vector points into the
 # offsets provided by offs
-function unflatten_net!(mlp::MLP, buf::Vector)
+function unflatten_net!(mlp::MLP, buf::AbstractVector)
 	mlp.buf = buf
 
 	pbuf = pointer(buf)
