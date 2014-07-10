@@ -51,15 +51,15 @@ function train{T}(nn_in::T, p::TrainingParams, x, t; verbose::Bool=true)
 
 		ln = nn.offs[end]
 		n = size(x,2)
-		buf2 = Array(Float64, ln, n)
+		jacobian = Array(Float64, ln, n)
 		function g(nd)
 			unflatten_net!(nn, vec(nd))
 			for i = 1 : n
-				curbuf = pointer_to_array(pointer(buf2)+(i-1)*sizeof(Float64)*ln,(ln,))
-				unflatten_net!(nng, curbuf)
+				jacobcol = pointer_to_array(pointer(jacobian)+(i-1)*sizeof(Float64)*ln,(ln,))
+				unflatten_net!(nng, jacobcol)
 				backprop!(nn.net, nng.net, x[:,i], zeros(out_dim))
 			end
-			buf2'
+			jacobian'
 		end
 
 		r = levenberg_marquardt(nd -> vec(f(nd)), g, nn.buf)
