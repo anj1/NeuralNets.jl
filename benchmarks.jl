@@ -40,15 +40,17 @@ transform!(trans_t,T)
 ind = size(X,1)
 outd = size(T,1)
 
-layer_sizes = [ind, 10, 10, outd]
-act   = [relud,  relu,  ident]
-actd  = [relud, relud, identd]
+layer_sizes = [ind, 6, outd]
+act   = [logis,  ident]
+actd  = [logisd, identd]
 
 # not working 100%, it's a difficult set to get to converge in a sensible time period
 
+println("Training...")
+
 mlp = MLP(rand, layer_sizes, act, actd)
-params = TrainingParams(200e3, 0, 2e-6, .7, :levenberg_marquardt)
-mlp = train(mlp, params, X, T)
+params = TrainingParams(1_000, 1e-5, 2e-6, .7, :levenberg_marquardt)
+mlp = train(mlp, params, X, T, verbose=false)
 
 @show untransform(trans_t,T)
 @show untransform(trans_t,prop(mlp,X))
