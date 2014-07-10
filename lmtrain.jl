@@ -14,7 +14,7 @@
 function lmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=10, verbose::Bool=true)
     η, c, m = p.η, p.c, p.m
     i = e_old = Δ_old = 0
-    λ = 1e-2
+    λ = 100
     converged::Bool = false    
     while !converged
         i += 1          
@@ -23,7 +23,12 @@ function lmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=10, verbose::Bool=
         while true 
             j += 1 
             ∇,δ = backprop(mlp.net,x,t)
-            Δw = inv(H .+ λ*diagm(diag(H))) * ∇        # caclulate new setp
+
+            J = g(mlp.buf)
+            H = J'*J
+            diagH = diagm(diag(H))
+
+
             e_new = loss(prop(mlp.net - Δw_new,x),t)    # test new update
             Δe = e_new - e_old
             if Δe > 0           
@@ -52,5 +57,3 @@ function lmtrain(mlp::MLP, p::TrainingParams, x, t; eval::Int=10, verbose::Bool=
         i >= p.i && break # check if hit the max iterations limit 
     end
 end
-
-include("lmtrain.jl")
