@@ -8,6 +8,12 @@ end
 
 prop(mlp::MLP,x) = prop(mlp.net,x)
 
+# add some 'missing' functionality to ArrayViews
+function setindex!(dst::ContiguousView, src::Array{Float64,1}, idx::UnitRange{Int64})
+	offs = dst.offset
+	dst.arr[offs+1:offs+dst.len] = src
+end
+
 # backpropagation;
 # with memory for gradients pre-allocated.
 # (gradients returned in stor)
@@ -27,7 +33,7 @@ function backprop!{T}(net::Vector{T}, stor::Vector{T}, x, t)
 		δ = l.ad(h) .* backprop!(net[2:end], stor[2:end], y, t)
 
 		# calculate weight and bias gradients
-		stor[1].w[:] = δ*x'
+		stor[1].w[:] = vec(δ*x')
 		stor[1].b[:] = sum(δ,2)
 
 		# propagate error
