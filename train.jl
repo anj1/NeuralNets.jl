@@ -63,7 +63,7 @@ function train{T}(nn_in::T, p::TrainingParams, x, t; verbose::Bool=true)
 			jacobian'
 		end
 
-		r = levenberg_marquardt(nd -> vec(f(nd)), g, nn.buf)
+		r = levenberg_marquardt(nd -> vec(f(nd)), g, nn.buf, tolX=p.c, maxIter=p.i, show_trace=verbose)
 	else
 		function g!(nd, ndg)
 			unflatten_net!(nn, nd)
