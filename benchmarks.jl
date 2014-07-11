@@ -46,11 +46,14 @@ actd  = [logisd, identd]
 
 # not working 100%, it's a difficult set to get to converge in a sensible time period
 
-println("Training...")
-
 mlp = MLP(rand, layer_sizes, act, actd)
-params = TrainingParams(1_000, 1e-5, 2e-6, .7, :levenberg_marquardt)
+params = TrainingParams(100, 1e-5, 2e-6, .7, :levenberg_marquardt)
+
+O = prop(mlp,X)
+@show mean((O .- T).^2)
+
+println("Training...")
 mlp = train(mlp, params, X, T, verbose=false)
 
-@show untransform(trans_t,T)
-@show untransform(trans_t,prop(mlp,X))
+O = prop(mlp,X)
+@show mean((O .- T).^2)
