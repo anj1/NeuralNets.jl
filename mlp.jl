@@ -1,8 +1,10 @@
 # Types and function definitions for multi-layer perceptrons
-	
+
+using ArrayViews
+
 type NNLayer{T}
-	w::Matrix{T}
-	b::Vector{T}
+	w::AbstractMatrix{T}
+	b::AbstractVector{T}
 	a::Function
 	ad::Function
 end
@@ -75,12 +77,12 @@ end
 function unflatten_net!(mlp::MLP, buf::AbstractVector)
 	mlp.buf = buf
 
-	pbuf = pointer(buf)
 	for i = 1 : length(mlp.net)
 		toff = i > 1 ? mlp.offs[i-1] : 0
-		tpbuf = pbuf + toff*sizeof(eltype(buf))
 		tdims = mlp.dims[i]
-		mlp.net[i].w = pointer_to_array(tpbuf, tdims)
-		mlp.net[i].b = pointer_to_array(tpbuf + sizeof(eltype(buf))*prod(tdims), (tdims[1],))
+		lenw = prod(tdims)
+		mlp.net[i].w = reshape_view(view(buf, toff+1:toff+lenw), tdims)
+		toff += lenw
+		mlp.net[i].b = view(buf, toff+1:toff+tdims[1])
 	end
 end
