@@ -42,11 +42,10 @@ outd = size(T,1)
 
 layer_sizes = [ind, 6, outd]
 act   = [logis,  ident]
-actd  = [logisd, identd]
 
 # not working 100%, it's a difficult set to get to converge in a sensible time period
 
-mlp = MLP(rand, layer_sizes, act, actd)
+mlp = MLP(rand, layer_sizes, act)
 params = TrainingParams(100, 1e-5, 2e-6, .7, :levenberg_marquardt)
 
 O = prop(mlp,X)
