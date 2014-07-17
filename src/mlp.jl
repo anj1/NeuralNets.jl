@@ -24,12 +24,9 @@ function MLP(genf::Function, layer_sizes::Vector{Int}, act::Vector{Function})
     # generate vector of activation derivatives
     # derivs::Dict{Function,Function} is defined in activ.jl
     actd = Function[]
-    for f in act
-        if haskey(derivs,f) 
-            push!(actd,derivs[f])
-        else
-            push!(actd,autodiff(f)) # automatically differentiate f  
-        end
+    for f in act # if native deriv not found then calculate one with ForwardDiff
+        d = haskey(derivs,f) ? derivs[f] : autodiff(f)
+        push!(actd,d)
     end
 
 	# offsets into the parameter vector
