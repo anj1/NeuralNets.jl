@@ -5,7 +5,7 @@ logisd(x) = exp(x) ./ ((1 .+ exp(x)).^2)
 logissafe(x)=logis(x)
 
 function logissafed(x)
-    x = max(x , 400.0)
+    x = max(x,400.0)
     return exp(x) ./ ((1 .+ exp(x)).^2),1.0)
 end
 
