@@ -1,20 +1,27 @@
 module NeuralNets
-    using Optim
-    using ArrayViews
 
-    import Optim.levenberg_marquardt
+using Optim
+using ArrayViews
 
-    export # put things here
+import Optim:levenberg_marquardt
 
-    # types
-    include("types.jl")
+# functions
+export train, prop
+export logis, logisd, logissafe, logissafed, relu, relud, ident, identd, tanhd
 
-    # training
-    include("lmtrain.jl")
-    include("gdmtrain.jl")
-    include("train.jl")
+# types
+export MLP
 
-    # multi-layer perceptrons
-    include("activations.jl")
-    include("mlp.jl")
+# types
+include("types.jl")
+
+# multi-layer perceptrons
+include("activations.jl")
+include("mlp.jl")
+
+# training
+include("lmtrain.jl")
+include("gdmtrain.jl")
+include("train.jl")
+
 end
