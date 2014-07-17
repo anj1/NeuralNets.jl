@@ -3,7 +3,7 @@
 An open-ended implentation of artificial neural networks in Julia.
 
 Some neat features include:
-* Poised to deliver cutting-edge synergy for your housecat or business in real-time!
+* Poised to deliver cutting-edge synergy for your business or housecat in real-time!
 * Twitter-ready out of the box!
 * Both HAL9000 and Skynet proof!
 * Low calorie, 100% vegan, and homeopathic friendly!
