@@ -1,10 +1,8 @@
 NeuralNets.jl
 ===============
-Generic artificial neural networks in Julia
+An open-ended implentation of artificial neural networks in Julia. 
 
-Things to do before we let other people know about this:
-* get the validation set happening
-* decent readme
-* finish lmtrain.jl
-* write an example that uses RDatabases
-* set up package to work with the julia homebrew thing (Pkg.add("NeuralNets"))
+Currently we only have support for multi-layer perceptrons, these are instantiated by using the ```MLP()``` constructor as follows:
+
+```MLP(genf,layer_sizes,act)```
+
