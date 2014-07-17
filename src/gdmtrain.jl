@@ -7,13 +7,22 @@
 # c:        convergence criterion
 # eval:     how often we evaluate the loss function
 # verbose:  train with printed feedback about the error function
-function gdmtrain(mlp::MLP, p::TrainingParams, x, t, eval::Int=10, verbose::Bool=true)
-    η, c, m = p.η, p.c, p.m
+function gdmtrain(mlp::MLP,
+                  x,
+                  t;
+                  iterations::Int=1000,
+                  tol::Real=1e-5,
+                  learning_rate=.3,
+                  momentum_rate=.6,
+                  eval::Int=10,
+                  verbose::Bool=true)
+
+    η, c, m = learning_rate, tol, momentum_rate
     i = e_old = Δw_old = 0
     e_new = loss(prop(mlp.net,x),t)
     n = size(x,2)
     converged::Bool = false
-    while (!converged && i < p.i) # while not converged and i less than maxiter
+    while (!converged && i < iterations) # while not converged and i less than maxiter
         i += 1
         # Start of the update step
         # eventually the update step here should be the sole definition of gdmtrain()

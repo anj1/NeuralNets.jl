@@ -1,11 +1,6 @@
 using Optim
 import Optim.levenberg_marquardt
 using ArrayViews
-# these are left in while we fine-tune, resumably we should remove before release
-
-
-include("lmtrain.jl")
-include("gdmtrain.jl")
 
 loss(y, t) = 0.5 * norm(y .- t).^2
 
@@ -21,7 +16,19 @@ function Base.isnan(net::Array{NNLayer})
 end
 Base.isnan(mlp::MLP) = isnan(mlp.net)
 
-function train{T}(nn_in::T, p::TrainingParams, trainx, valx, traint, valt; verbose::Bool=true, ep_iter=5)
+function train{T}(nn_in::T,
+	              trainx,
+	              valx,
+	              traint,
+	              valt;
+	              maxiter::Int=1000,
+	              tol::Real=1e-5,
+	              learning_rate=.3,
+	              momentum_rate=.6,
+	              train_method=:gradient_descent,
+	              verbose::Bool=true,
+	              ep_iter::Int=5)
+
 	# todo: separate into training and test data
 	# todo: make unflatten_net a macro
 	# todo: use specified parameters
@@ -32,11 +39,11 @@ function train{T}(nn_in::T, p::TrainingParams, trainx, valx, traint, valt; verbo
 	# due to the fact that it needs the jacobian.
 
 	# hooks to call native functions
-	if p.train_method == :gdmtrain
-		return gdmtrain(nn_in, p, trainx, traint, 10, verbose)
+	if train_method == :gdmtrain
+		return gdmtrain(nn_in, trainx, traint, maxiter, tol, learning_rate, momentum_rate, eval, verbose)
 	end
 
-    if p.train_method == :lmtrain
+    if train_method == :lmtrain
         return nothing
         # return lmtrain(nn_in, stuff)
     end
@@ -50,7 +57,12 @@ function train{T}(nn_in::T, p::TrainingParams, trainx, valx, traint, valt; verbo
 		prop(nn.net, trainx).-traint
 	end
 	
-	if p.train_method == :levenberg_marquardt
+	converged=false
+	numiter=0
+	gradnorm=Float64[]
+	lastval=Inf
+	r = []
+	if train_method == :levenberg_marquardt
 		out_dim = size(traint,1)
 		out_dim==1 || throw("Error: LM only supported with one output neuron.")
 
@@ -67,7 +79,14 @@ function train{T}(nn_in::T, p::TrainingParams, trainx, valx, traint, valt; verbo
 			jacobian'
 		end
 
-		optimfunc = :(levenberg_marquardt(nd -> vec(f(nd)), g, nn.buf, tolX=p.c, maxIter=ep_iters))
+		while numiter <= maxiter
+			r = levenberg_marquardt(nd -> vec(f(nd)), g, nn.buf, tolX=tol, maxIter=ep_iter)
+			
+			numiter += ep_iter
+
+			lastval, vc = convg_check(r, nn, valx, valt, lastval)
+			if vc || r.x_converged; break; end
+		end
 	else
 		function g!(nd, ndg)
 			unflatten_net!(nn, nd)
@@ -75,27 +94,14 @@ function train{T}(nn_in::T, p::TrainingParams, trainx, valx, traint, valt; verbo
 			backprop!(nn.net, nng.net, trainx,  traint)
 		end
 
-		optimfunc = :(optimize(nd -> 0.5*norm(f(nd)).^2, g!, nn.buf, method=p.train_method, grtol=p.c, iterations=ep_iters, show_trace=verbose))
-	end
+		while numiter <= maxiter
+			r = optimize(nd -> 0.5*norm(f(nd)).^2, g!, nn.buf, method=train_method, grtol=tol, iterations=maxiters)
 
-	converged=false
-	numiter=0
-	gradnorm=Float64[]
-	lastval=Inf
-	while !(converged || numiter > p.i)
-		# evaluate for a few iterations and look at the results
-		r = eval(optimfunc)
+			gradnorm = proc_results(r, gradnorm, verbose, ep_iter)
+			numiter += ep_iter
 
-		if verbose; println(r.trace); end
-		gradnorm = cat(1, gradnorm, [r.trace[i].gradnorm for i = 1 : 10])
-		converged = r.x_converged
-		numiter += ep_iters
-
-		# now check for validation set convergence
-		if length(valx) > 0
-			thisval = loss(prop(nn, valx), valt)
-			converged = thisval > lastval ? true : converged
-			lastval = thisval
+			lastval, vc = convg_check(r, nn, valx, valt, lastval)
+			if vc || r.x_converged; break; end
 		end
 	end
 
@@ -103,3 +109,18 @@ function train{T}(nn_in::T, p::TrainingParams, trainx, valx, traint, valt; verbo
 	nn
 end
 
+function proc_results(r, gradnorm, verbose, ep_iter)
+	if verbose; println(r.trace[ep_iter]); end
+	gradnorm = cat(1, gradnorm, [r.trace[i].gradnorm for i = 1 : ep_iter])
+	gradnorm
+end
+
+function convg_check(r, nn, valx, valt, lastval)
+	converged = false
+	if length(valx) > 0
+		thisval = loss(prop(nn, valx), valt)
+		converged = thisval > lastval ? true : converged
+		lastval = thisval
+	end
+	lastval, converged
+end

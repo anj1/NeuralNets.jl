@@ -11,22 +11,16 @@ t = [
     ]
 
 # network topology
-ind = size(x,1)
-outd = size(t,1)
-
-layer_sizes = [ind, 3, 3, outd]
+layer_sizes = [2, 3, 3, 1]
 act   = [relu,  relu,  logis]
 
 # initialize net
 mlp = MLP(randn, layer_sizes, act)
 
-# training parameters
-p = TrainingParams(1000, 1e-5, .3, .6, :levenberg_marquardt)
+# train without a validation set
+mlp1 = train(mlp, x, [], t, [], train_method=:levenberg_marquardt)
+@show prop(mlp1, x)
 
-# self-explanatory
-# mlp1 = train(mlp, p, x, t)
-# @show prop(mlp1, x)
-
-mlp2 = gdmtrain(mlp, p, x, t)
+mlp2 = gdmtrain(mlp, x, t)
 @show prop(mlp2, x)
 
