@@ -3,7 +3,6 @@ logis(x) = 1 ./(1 .+ exp(-x))
 logisd(x) = exp(x) ./ ((1 .+ exp(x)).^2)
 
 logissafe(x)=logis(x)
-
 function logissafed(x)
     x = min(x,400.0)
     return logisd(x)
