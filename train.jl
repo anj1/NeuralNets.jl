@@ -93,7 +93,7 @@ function gdmtrain(mlp::MLP, p::TrainingParams, x, t, eval::Int=10, verbose::Bool
     e_new = loss(prop(mlp.net,x),t)
     n = size(x,2)
     converged::Bool = false
-    while !converged
+    while (!converged && i < p.i) # while not converged and i less than maxiter
         i += 1
         # Start of the update step
         # eventually the update step here should be the sole definition of gdmtrain()
@@ -113,7 +113,6 @@ function gdmtrain(mlp::MLP, p::TrainingParams, x, t, eval::Int=10, verbose::Bool
         if verbose && i % 100 == 0
             println("i: $i\tLoss=$(round(e_new,6))\tΔLoss=$(round((e_new - e_old),6))\tAvg. Loss=$(round((e_new/n),6))")
         end        
-        i >= p.i && break # check if hit the max iterations limit 
     end
     convgstr = converged ? "converged" : "didn't converge"
     println("Training $convgstr in less than $i iterations; average error: $(round((e_new/n),4)).")
