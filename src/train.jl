@@ -4,11 +4,11 @@ using ArrayViews
 
 loss(y, t) = 0.5 * norm(y .- t).^2
 
-# possibly useful functions to diagnose convergence problems 
-# possibly to suggest learning rates with a while loop checking 
+# possibly useful functions to diagnose convergence problems
+# possibly to suggest learning rates with a while loop checking
 # if the first step produces a NaN in any of the weights
 function Base.isnan(net::Array{NNLayer})
-    nans = 0 
+    nans = 0
     for l in net
         nans += sum(isnan(l.w)) + sum(isnan(l.b))
     end
@@ -25,6 +25,7 @@ function train{T}(nn_in::T,
 	              tol::Real=1e-5,
 	              learning_rate=.3,
 	              momentum_rate=.6,
+                lambda=1e-6,
 	              train_method=:gradient_descent,
 	              verbose::Bool=true,
 	              ep_iter::Int=5)
@@ -43,10 +44,14 @@ function train{T}(nn_in::T,
 		return gdmtrain(nn_in, trainx, traint, maxiter, tol, learning_rate, momentum_rate, eval, verbose)
 	end
 
-    if train_method == :lmtrain
-        return nothing
-        # return lmtrain(nn_in, stuff)
-    end
+  if train_method == :adatrain
+    return adatrain(nn_in, trainx, traint, maxiter, tol, learning_rate, lambda, eval, verbose)
+  end
+
+  if train_method == :lmtrain
+    return nothing
+    # return lmtrain(nn_in, stuff)
+  end
 
 	# todo: make this thread-safe
 	nn  = deepcopy(nn_in)
@@ -56,7 +61,7 @@ function train{T}(nn_in::T,
 		unflatten_net!(nn, vec(nd))
 		prop(nn.net, trainx).-traint
 	end
-	
+
 	converged=false
 	numiter=0
 	gradnorm=Float64[]
@@ -81,7 +86,7 @@ function train{T}(nn_in::T,
 
 		while numiter <= maxiter
 			r = levenberg_marquardt(nd -> vec(f(nd)), g, nn.buf, tolX=tol, maxIter=ep_iter)
-			
+
 			numiter += ep_iter
 
 			lastval, vc = convg_check(r, nn, valx, valt, lastval)
