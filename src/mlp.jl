@@ -28,8 +28,7 @@ function MLP(genf::Function, layer_sizes::Vector{Int}, act::Vector{Function})
         if haskey(derivs,f) 
             push!(actd,derivs[f])
         else
-            # hook for implementation of automatic differentiation
-            throw("No derivative found for the specified activation function $(act[i]).")         
+            push!(actd,autodif(f)) # automatically differentiate f with ForwardDiff.jl   
         end
     end
 
