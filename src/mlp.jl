@@ -22,7 +22,6 @@ function MLP(genf::Function, layer_sizes::Vector{Int}, act::Vector{Function})
 	dims = [(layer_sizes[i+1],layer_sizes[i]) for i in 1:nlayers]
 
     # generate vector of activation derivatives
-    # derivs::Dict{Function,Function} is defined in activ.jl
     actd = Function[]
     for f in act # if native deriv not found then calculate one with ForwardDiff
         d = haskey(derivs,f) ? derivs[f] : autodiff(f)
