@@ -4,11 +4,11 @@ using ArrayViews
 
 loss(y, t) = 0.5 * norm(y .- t).^2
 
-# possibly useful functions to diagnose convergence problems
-# possibly to suggest learning rates with a while loop checking
+# possibly useful functions to diagnose convergence problems 
+# possibly to suggest learning rates with a while loop checking 
 # if the first step produces a NaN in any of the weights
 function Base.isnan(net::Array{NNLayer})
-    nans = 0
+    nans = 0 
     for l in net
         nans += sum(isnan(l.w)) + sum(isnan(l.b))
     end
@@ -23,35 +23,15 @@ function train{T}(nn_in::T,
 	              valt;
 	              maxiter::Int=1000,
 	              tol::Real=1e-5,
-	              learning_rate=.3,
-	              momentum_rate=.6,
-                lambda=1e-6,
+                  verbose::Bool=true,
 	              train_method=:gradient_descent,
-	              verbose::Bool=true,
 	              ep_iter::Int=5)
 
-	# todo: separate into training and test data
 	# todo: make unflatten_net a macro
-	# todo: use specified parameters
-	# todo: dont discard r; use the parameters as diagnostics
 
 	# train neural net using specified training algorithm.
 	# Levenberg-marquardt must be treated as a special case
 	# due to the fact that it needs the jacobian.
-
-	# hooks to call native functions
-	if train_method == :gdmtrain
-		return gdmtrain(nn_in, trainx, traint, maxiter, tol, learning_rate, momentum_rate, eval, verbose)
-	end
-
-  if train_method == :adatrain
-    return adatrain(nn_in, trainx, traint, maxiter, tol, learning_rate, lambda, eval, verbose)
-  end
-
-  if train_method == :lmtrain
-    return nothing
-    # return lmtrain(nn_in, stuff)
-  end
 
 	# todo: make this thread-safe
 	nn  = deepcopy(nn_in)
@@ -61,7 +41,7 @@ function train{T}(nn_in::T,
 		unflatten_net!(nn, vec(nd))
 		prop(nn.net, trainx).-traint
 	end
-
+	
 	converged=false
 	numiter=0
 	gradnorm=Float64[]
@@ -86,7 +66,7 @@ function train{T}(nn_in::T,
 
 		while numiter <= maxiter
 			r = levenberg_marquardt(nd -> vec(f(nd)), g, nn.buf, tolX=tol, maxIter=ep_iter)
-
+			
 			numiter += ep_iter
 
 			lastval, vc = convg_check(r, nn, valx, valt, lastval)
@@ -112,6 +92,18 @@ function train{T}(nn_in::T,
 
 	unflatten_net!(nn, r.minimum)
 	nn
+end
+
+# train without validation data
+function train{T}(nn_in::T,
+	              trainx,
+	              traint;
+	              maxiter::Int=1000,
+	              tol::Real=1e-5,
+                  verbose::Bool=true,
+	              train_method=:gradient_descent,
+	              ep_iter::Int=5)
+	train(nn_in::T,trainx,traint;maxiter,tol,verbose,train_method,ep_iter)
 end
 
 function proc_results(r, gradnorm, verbose, ep_iter)
