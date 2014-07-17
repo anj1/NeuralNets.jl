@@ -1,9 +1,9 @@
 # bring in definitions
-require("types.jl")
-require("activations.jl")
-require("mlp.jl")
-require("backprop.jl")
-require("train.jl")
+require("../src/types.jl")
+require("../src/activations.jl")
+require("../src/mlp.jl")
+require("../src/backprop.jl")
+require("../src/train.jl")
 
 # xor training data
 x = [
