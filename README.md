@@ -1,5 +1,4 @@
 # NeuralNets.jl
-===============
 An open-ended implentation of artificial neural networks in Julia.
 
 Some neat features include:
