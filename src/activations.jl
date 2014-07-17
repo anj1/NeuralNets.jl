@@ -11,7 +11,9 @@ identd(x) = 1
 tanhd(x) = sech(x).^2
 
 # dictionary of commonly-used activation derivatives
-derivs = Dict{Function, Function}([logis => logisd, 
-                                   relu => relud, 
-                                   ident => identd, 
-                                   tanh => tanhd])
+derivs =
+Dict{Function, Function}([logis => logisd, 
+                          relu  => relud, 
+                          ident => identd, 
+                          tanh  => tanhd])
+
