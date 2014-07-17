@@ -1,6 +1,6 @@
 # bring in definitions
 require("types.jl")
-require("activ.jl")
+require("activations.jl")
 require("mlp.jl")
 require("backprop.jl")
 require("train.jl")

@@ -1,6 +1,6 @@
 # bring in definitions
 require("types.jl")
-require("activ.jl")
+require("activations.jl")
 require("mlp.jl")
 require("backprop.jl")
 require("train.jl")
@@ -16,7 +16,12 @@ t = [
     ]
 
 # network topology
-layer_sizes = [2, 3, 3, 1]
+
+
+ind = size(x,1)
+outd = size(t,1)
+
+layer_sizes = [ind, 3, 3, outd]
 act   = [relu,  relu,  logis]
 
 # initialize net
