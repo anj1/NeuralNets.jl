@@ -1,7 +1,10 @@
 # Train a MLP using Levenberg-Marquardt optimisation.
-
-
 function lmtrain(mlp::MLP, p::TrainingParams, x, t, eval::Int=10, verbose::Bool=true)
+
+    minλ = 1e16     # default values curtesy of Optim.jl
+    maxλ = 1e-16
+    λ    = 100
+
     # todo: make this thread-safe
     nn  = deepcopy(nn_in)
     nng = deepcopy(nn)
@@ -28,35 +31,38 @@ function lmtrain(mlp::MLP, p::TrainingParams, x, t, eval::Int=10, verbose::Bool=
         return jacobian'
     end
 
+    i = 0
+    e_old = loss(prop(w_temp,x),t)
+
     # r = levenberg_marquardt(nd -> vec(f(nd)), g, nn.buf, tolX=p.c, maxIter=p.i)
-    while !converged
+    while  (!converged && i < p.i) # while not converged and i less than maxiter
         i += 1
 
-        # Levenberg-Marquardt update
         J = g(x) # calculate hessian
         H = J'*J # linear hessian approximation
         
-        Δw = -inv(H + sqrt(λ)*diagm(diag(H)))*J
-        # need some code in here to turn Δw into an Array{NNLayer} 
+        Δw = sum(inv(H + λ*diagm(diag(H)))*J,3) # axis 3 will be for each data point
 
+        # need some code in here to make Δw of type Array{NNLayer} 
 
-        if loss(prop(mlp.net-Δw,t) < 0
-            λ = max(0.1*λ, minλ)
+        w_temp = mlp.net - Δw       # tentatively update weights
+        e_new=loss(prop(w_temp,x),t)
+
+        if e_new - e_old < 0        # if new step decreases loss
+            λ = max(0.1*λ, minλ)    # decrease λ
+            mlp.net = w_temp        # update weights
+            e_old = e_new           # prepare for another iteration
         else
-            λ = min(10*λ, maxλ)
+            λ = min(10*λ, maxλ)     # increase λ
         end
-
-
 
         if i % eval == 0  # recalculate loss every eval number iterations
             e_old = e_new
             e_new = loss(prop(mlp.net,x),t)
             converged = abs(e_new - e_old) < c # check if converged
+        end
     end
-
-    J = g(x)
-
-
-    unflatten_net!(nn, r.minimum)
-    nn
+    convgstr = converged ? "converged" : "didn't converge"
+    println("Training $convgstr in less than $i iterations; average error: $(round((e_new/n),4)).")    
+    return mlp,converged
 end
