@@ -30,7 +30,7 @@ type MLP
     offs::Vector{Int}    # indices into in-place store
     trained::Bool
 end
-d
+
 type TrainingParams
     i::Int              # iterations for convergence
     c::Real             # convergence criterion
