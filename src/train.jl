@@ -21,11 +21,11 @@ function Base.isnan(net::Array{NNLayer})
 end
 Base.isnan(mlp::MLP) = isnan(mlp.net)
 
-function train{T}(nn_in::T, p::TrainingParams, trainx, valx, t; verbose::Bool=true, optim_interv=5)
+function train{T}(nn_in::T, p::TrainingParams, trainx, valx, traint, valt; verbose::Bool=true, optim_interv=5)
 	# todo: separate into training and test data
 	# todo: make unflatten_net a macro
 	# todo: use specified parameters
-	# todo: don't discard r; use the parameters as diagnostics
+	# todo: dont discard r; use the parameters as diagnostics
 
 	# train neural net using specified training algorithm.
 	# Levenberg-marquardt must be treated as a special case
@@ -33,7 +33,7 @@ function train{T}(nn_in::T, p::TrainingParams, trainx, valx, t; verbose::Bool=tr
 
 	# hooks to call native functions
 	if p.train_method == :gdmtrain
-		return gdmtrain(nn_in, p, trainx, t, 10, verbose)
+		return gdmtrain(nn_in, p, trainx, traint, 10, verbose)
 	end
 
     if p.train_method == :lmtrain
@@ -47,11 +47,11 @@ function train{T}(nn_in::T, p::TrainingParams, trainx, valx, t; verbose::Bool=tr
 
 	function f(nd)
 		unflatten_net!(nn, vec(nd))
-		prop(nn.net, trainx).-t
+		prop(nn.net, trainx).-traint
 	end
 	
 	if p.train_method == :levenberg_marquardt
-		out_dim = size(t,1)
+		out_dim = size(traint,1)
 		out_dim==1 || throw("Error: LM only supported with one output neuron.")
 
 		ln = nn.offs[end]
@@ -72,7 +72,7 @@ function train{T}(nn_in::T, p::TrainingParams, trainx, valx, t; verbose::Bool=tr
 		function g!(nd, ndg)
 			unflatten_net!(nn, nd)
 			unflatten_net!(nng, ndg)
-			backprop!(nn.net, nng.net, trainx,  t)
+			backprop!(nn.net, nng.net, trainx,  traint)
 		end
 
 		optimfunc = :(optimize(nd -> 0.5*norm(f(nd)).^2, g!, nn.buf, method=p.train_method, grtol=p.c, iterations=ep_iters, show_trace=verbose))
@@ -81,6 +81,7 @@ function train{T}(nn_in::T, p::TrainingParams, trainx, valx, t; verbose::Bool=tr
 	converged=false
 	numiter=0
 	gradnorm=Float64[]
+	lastval=Inf
 	while !(converged || numiter > p.i)
 		# evaluate for a few iterations and look at the results
 		r = eval(optimfunc)
@@ -92,7 +93,9 @@ function train{T}(nn_in::T, p::TrainingParams, trainx, valx, t; verbose::Bool=tr
 
 		# now check for validation set convergence
 		if length(valx) > 0
-			converged = gradnorm[end] <= gradnorm[end-ep_iters] ? true : converged
+			thisval = loss(prop(nn, valx), valt)
+			converged = thisval > lastval ? true : converged
+			lastval = thisval
 		end
 	end
 
