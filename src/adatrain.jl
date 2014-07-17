@@ -32,7 +32,7 @@ function adatrain(mlp::MLP,
         ∇,δ = backprop(mlp.net,x,t)
 
         ∑ += ∇ .^ 2
-        ∇_adj = ∇ ./ (λ .+ sqrt(∑))
+        ∇_adj = ∇ ./ (λ .+ (∑ .^ 0.5))
 
         Δ = η * ∇_adj # calculate Δ weights
 
