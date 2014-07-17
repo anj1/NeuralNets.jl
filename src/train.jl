@@ -4,11 +4,11 @@ using ArrayViews
 
 loss(y, t) = 0.5 * norm(y .- t).^2
 
-# possibly useful functions to diagnose convergence problems 
-# possibly to suggest learning rates with a while loop checking 
+# possibly useful functions to diagnose convergence problems
+# possibly to suggest learning rates with a while loop checking
 # if the first step produces a NaN in any of the weights
 function Base.isnan(net::Array{NNLayer})
-    nans = 0 
+    nans = 0
     for l in net
         nans += sum(isnan(l.w)) + sum(isnan(l.b))
     end
@@ -23,7 +23,7 @@ function train{T}(nn_in::T,
 	              valt;
 	              maxiter::Int=1000,
 	              tol::Real=1e-5,
-                  verbose::Bool=true,
+                verbose::Bool=true,
 	              train_method=:gradient_descent,
 	              ep_iter::Int=5)
 
@@ -41,7 +41,7 @@ function train{T}(nn_in::T,
 		unflatten_net!(nn, vec(nd))
 		prop(nn.net, trainx).-traint
 	end
-	
+
 	converged=false
 	numiter=0
 	gradnorm=Float64[]
@@ -66,7 +66,7 @@ function train{T}(nn_in::T,
 
 		while numiter <= maxiter
 			r = levenberg_marquardt(nd -> vec(f(nd)), g, nn.buf, tolX=tol, maxIter=ep_iter)
-			
+
 			numiter += ep_iter
 
 			lastval, vc = convg_check(r, nn, valx, valt, lastval)
@@ -100,10 +100,10 @@ function train{T}(nn_in::T,
 	              traint;
 	              maxiter::Int=1000,
 	              tol::Real=1e-5,
-                  verbose::Bool=true,
+                verbose::Bool=true,
 	              train_method=:gradient_descent,
 	              ep_iter::Int=5)
-	train(nn_in::T,trainx,traint;maxiter,tol,verbose,train_method,ep_iter)
+	train(nn_in::T, trainx, traint; maxiter=maxiter, tol=tol, verbose=verbose, train_method=train_method, ep_iter=ep_iter)
 end
 
 function proc_results(r, gradnorm, verbose, ep_iter)

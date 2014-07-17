@@ -6,7 +6,7 @@ using ArrayViews
 import Optim:levenberg_marquardt
 
 # functions
-export train, gdmtrain, prop
+export train, gdmtrain, adatrain, prop
 export logis, logisd, logissafe, logissafed, relu, relud, ident, identd, tanhd
 
 # types
@@ -20,6 +20,8 @@ include("mlp.jl")
 include("backprop.jl")
 include("lmtrain.jl")
 include("gdmtrain.jl")
+include("adatrain.jl")
+
 include("train.jl")
 
 end

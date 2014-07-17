@@ -22,11 +22,14 @@ end
 *(l::NNLayer, x::Array) = l.w*x .+ l.b
 .*(c::Number, l::NNLayer) = NNLayer(c*l.w, c*l.b, l.a, l.ad)
 .*(l::NNLayer, m::NNLayer) = NNLayer(l.w.*m.w, l.b.*m.b, l.a, l.ad)
-.^(l::NNLayer, c::Number) = NNLayer(l.w.^c, l.b.^c, l.a, l.ad)            
--(l::NNLayer, m::NNLayer) = NNLayer(l.w - m.w, l.b - m.b, l.a, l.ad)    
--(l::NNLayer, c::Number) = NNLayer(l.w .- c, l.b .- c, l.a, l.ad)       
-+(l::NNLayer, m::NNLayer) = NNLayer(l.w + m.w, l.b + m.b, l.a, l.ad)  
-+(l::NNLayer, c::Number) = NNLayer(l.w .+ c, l.b .+ c, l.a, l.ad)  
+*(l::NNLayer, m::NNLayer) = NNLayer(l.w.*m.w, l.b.*m.b, l.a, l.ad)
+/(l::NNLayer, m::NNLayer) = NNLayer(l.w./m.w, l.b./m.b, l.a, l.ad)
+.^(l::NNLayer, c::Number) = NNLayer(l.w.^c, l.b.^c, l.a, l.ad)
+^(l::NNLayer, c::Number) = NNLayer(l.w.^c, l.b.^c, l.a, l.ad)
+-(l::NNLayer, m::NNLayer) = NNLayer(l.w - m.w, l.b - m.b, l.a, l.ad)
+-(l::NNLayer, c::Number) = NNLayer(l.w .- c, l.b .- c, l.a, l.ad)
++(l::NNLayer, m::NNLayer) = NNLayer(l.w + m.w, l.b + m.b, l.a, l.ad)
++(l::NNLayer, c::Number) = NNLayer(l.w .+ c, l.b .+ c, l.a, l.ad)
 +(c::Number, l::NNLayer) = l+c
 
 function Base.show(io::IO, l::NNLayer)
@@ -35,7 +38,7 @@ function Base.show(io::IO, l::NNLayer)
     print(io, l.a,", ",l.ad,"\n")
     print(io, "node weights:\n",l.w,"\n")
     print(io, "bias weights:\n",l.b)
-end  
+end
 
 # For the NNLayer type, given a set of layer dimensions,
 # compute offsets into the flattened vector.
@@ -92,4 +95,3 @@ function unflatten_net!(mlp::MLP, buf::AbstractVector)
 		mlp.net[i].b = view(buf, toff+1:toff+tdims[1])
 	end
 end
-
