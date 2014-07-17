@@ -9,14 +9,6 @@ function lmtrain(mlp::MLP, p::TrainingParams, x, t, eval::Int=10, verbose::Bool=
     nn  = deepcopy(nn_in)
     nng = deepcopy(nn)
 
-    function f(nd)                      # objective function to minimise
-        unflatten_net!(nn, vec(nd))
-        prop(nn.net, x).-t
-    end
-    
-    out_dim = size(t,1)
-    out_dim==1 || throw("Error: LM only supported with one output neuron.")
-
     ln = nn.offs[end]
     n = size(x,2)
     jacobian = Array(Float64, ln, n)
