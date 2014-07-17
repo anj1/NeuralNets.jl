@@ -2,6 +2,16 @@
 logis(x) = 1 ./(1 .+ exp(-x))
 logisd(x) = exp(x) ./ ((1 .+ exp(x)).^2)
 
+logissafe(x)=logis(x)
+
+function logissafed(x)
+    y = exp(x) ./ ((1 .+ exp(x)).^2)
+    if !isnan(y)
+        return y
+    else 
+        return 1.0
+end
+
 relu(x) = log(1 .+ exp(x))
 relud(x) = 1 ./(1 .+ exp(-x))
 
@@ -11,10 +21,11 @@ identd(x) = 1
 tanhd(x) = sech(x).^2
 
 # dictionary of commonly-used activation derivatives
-derivs = Dict{Function, Function}([logis => logisd, 
-                                   relu => relud, 
-                                   ident => identd, 
-                                   tanh => tanhd])
+derivs = Dict{Function, Function}([logis    => logisd, 
+                                   logissafe => logissafed,
+                                   relu     => relud, 
+                                   ident    => identd, 
+                                   tanh     => tanhd])
 
 # automatic differentiateion with ForwardDiff.jl
 # due to limitations of ForwardDiff.jl, this function
