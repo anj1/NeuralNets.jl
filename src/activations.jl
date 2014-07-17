@@ -21,6 +21,6 @@ derivs = Dict{Function, Function}([logis => logisd,
 # will only produce derivatives with Float64 methods
 function autodif(activ::Function)
     f(x) = activ(x[1])
-    g(x)  = forwarddiff_gradient(f,Float64)([x])[1]
+    g(x) = forwarddiff_gradient(f,Float64)([x])[1]
     return g 
 end
