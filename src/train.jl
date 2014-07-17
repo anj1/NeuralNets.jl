@@ -23,30 +23,15 @@ function train{T}(nn_in::T,
 	              valt;
 	              maxiter::Int=1000,
 	              tol::Real=1e-5,
-	              learning_rate=.3,
-	              momentum_rate=.6,
+                  verbose::Bool=true,
 	              train_method=:gradient_descent,
-	              verbose::Bool=true,
 	              ep_iter::Int=5)
 
-	# todo: separate into training and test data
 	# todo: make unflatten_net a macro
-	# todo: use specified parameters
-	# todo: dont discard r; use the parameters as diagnostics
 
 	# train neural net using specified training algorithm.
 	# Levenberg-marquardt must be treated as a special case
 	# due to the fact that it needs the jacobian.
-
-	# hooks to call native functions
-	if train_method == :gdmtrain
-		return gdmtrain(nn_in, trainx, traint, maxiter, tol, learning_rate, momentum_rate, eval, verbose)
-	end
-
-    if train_method == :lmtrain
-        return nothing
-        # return lmtrain(nn_in, stuff)
-    end
 
 	# todo: make this thread-safe
 	nn  = deepcopy(nn_in)
