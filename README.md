@@ -22,8 +22,8 @@ Once the MLP type is constructed we train it using `train()`.
 
 ### Activation Functions
 There is 'native' support for the following activation functions. If you define an arbitrary activation function its derivative is calculated automatically using the `ForwardDiff.jl` package. The natively supported activation derivatives are a bit over twice as fast to evaluate compared with derivatives calculated using `ForwardDiff.jl`.
-* `ident` the identify function, f(x) = x
-* `logis` the logistic sigmoid, f(x) = 1 ./(1 .+ exp(-x)) 
+* `ident` the identify function, f(x) = x.
+* `logis` the logistic sigmoid, f(x) = 1 ./(1 .+ exp(-x)).
 * `logissafe` the logistic sigmoid with a 'safe' derivative which doesn't collapse when evaluating large values of x
-* `relu` rectified linear units , f(x) = log(1 .+ exp(x))
-* `tanh` hyperbolic tangent as it is defined in regular Julia usage
+* `relu` rectified linear units , f(x) = log(1 .+ exp(x)).
+* `tanh` hyperbolic tangent as it is already defined in Julia.
