@@ -21,7 +21,7 @@ function Base.isnan(net::Array{NNLayer})
 end
 Base.isnan(mlp::MLP) = isnan(mlp.net)
 
-function train{T}(nn_in::T, p::TrainingParams, trainx, valx, traint, valt; verbose::Bool=true, optim_interv=5)
+function train{T}(nn_in::T, p::TrainingParams, trainx, valx, traint, valt; verbose::Bool=true, ep_iter=5)
 	# todo: separate into training and test data
 	# todo: make unflatten_net a macro
 	# todo: use specified parameters
