@@ -23,10 +23,10 @@ function MLP(genf::Function, layer_sizes::Vector{Int}, act::Vector{Function})
 
     # generate vector of activation derivatives
     # derivs::Dict{Function,Function} is defined in activ.jl
-    actd = similar(act,Function)
-    for i in 1:length(act)
-        if haskey(derivs,act[i]) 
-            actd[i] = derivs[act[i]]            
+    actd = Function[]
+    for f in act
+        if haskey(derivs,f) 
+            push!(actd,derivs[f])
         else
             # hook for implementation of automatic differentiation
             throw("No derivative found for the specified activation function $(act[i]).")         
