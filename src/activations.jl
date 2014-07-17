@@ -5,11 +5,8 @@ logisd(x) = exp(x) ./ ((1 .+ exp(x)).^2)
 logissafe(x)=logis(x)
 
 function logissafed(x)
-    y = exp(x) ./ ((1 .+ exp(x)).^2)
-    if !isnan(y)
-        return y
-    else 
-        return 1.0
+    x = max(x , 400.0)
+    return exp(x) ./ ((1 .+ exp(x)).^2),1.0)
 end
 
 relu(x) = log(1 .+ exp(x))
