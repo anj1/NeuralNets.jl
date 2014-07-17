@@ -1,5 +1,13 @@
 # Train a MLP using Levenberg-Marquardt optimisation.
-function lmtrain(mlp::MLP, p::TrainingParams, x, t, eval::Int=10, verbose::Bool=true)
+function lmtrain(mlp::MLP,
+                 x,
+                 t;
+                 iterations::Int=1000,
+                 tol::Real=1e-5,
+                 learning_rate=.3,
+                 momentum_rate=.6,
+                 eval::Int=10,
+                 verbose::Bool=true)
 
     minλ = 1e16     # default values curtesy of Optim.jl
     maxλ = 1e-16
@@ -27,7 +35,7 @@ function lmtrain(mlp::MLP, p::TrainingParams, x, t, eval::Int=10, verbose::Bool=
     e_old = loss(prop(w_temp,x),t)
 
     # r = levenberg_marquardt(nd -> vec(f(nd)), g, nn.buf, tolX=p.c, maxIter=p.i)
-    while  (!converged && i < p.i) # while not converged and i less than maxiter
+    while  (!converged && i < iterations) # while not converged and i less than maxiter
         i += 1
 
         J = g(x) # calculate hessian

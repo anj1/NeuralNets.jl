@@ -13,7 +13,7 @@ export logis, logisd, logissafe, logissafed, relu, relud, ident, identd, tanhd
 export MLP
 
 # types
-include("types.jl")
+#include("types.jl")
 
 # multi-layer perceptrons
 include("activations.jl")
