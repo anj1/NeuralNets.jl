@@ -2,6 +2,7 @@ NeuralNets.jl
 ===============
 An open-ended implentation of artificial neural networks in Julia. 
 
+<<<<<<< HEAD
 Currently we only have support for multi-layer perceptrons, these are instantiated by using the `MLP()` constructor as follows: `MLP(genf,layer_sizes,act)`, where 
 * `genf::Function` is the function we use to initialise the weights. 
 * `layer_sizes::Vector{Int}` is a vector whose first element is the number of input nodes, and the last element is the number of output nodes, intermediary elements are the numbers of hidden nodes per layer; and 
@@ -31,4 +32,9 @@ mlp1 = train(mlp, p, x, t)
 mlp2 = gdmtrain(mlp, p, x, t)
 @show prop(mlp2, x)
 
+=======
+Currently we only have support for multi-layer perceptrons, these are instantiated by using the ```MLP()``` constructor as follows:
+
+```MLP(genf,layer_sizes,act)```
+>>>>>>> FETCH_HEAD
 
