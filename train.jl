@@ -36,6 +36,12 @@ function train{T}(nn_in::T, p::TrainingParams, x, t; verbose::Bool=true)
 		return gdmtrain(nn_in, p, x, t, 10, verbose)
 	end
 
+    if p.train_method == :lmtrain
+        return nothing
+        # return lmtrain(nn_in, stuff)
+    end
+
+
 	# todo: make this thread-safe
 	nn  = deepcopy(nn_in)
 	nng = deepcopy(nn)
