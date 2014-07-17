@@ -52,10 +52,22 @@ end
 # TODO: infer actd from act.
 # If activation function has known derivative, use that.
 # Otherwise, use automatic differentiation.
-function MLP(genf::Function, layer_sizes::Vector{Int}, act::Vector{Function}, actd::Vector{Function})
+function MLP(genf::Function, layer_sizes::Vector{Int}, act::Vector{Function})
 	# some initializations
 	nlayers = length(layer_sizes) - 1
 	dims = [(layer_sizes[i+1],layer_sizes[i]) for i in 1:nlayers]
+
+    # generate vector of activation derivatives
+    # derivs::Dict{Function,Function} is defined in activ.jl
+    actd = similar(act,Function)
+    for i in 1:length(act)
+        if haskey(derivs,act[i]) 
+            actd[i] = derivs[act[i]]            
+        else
+            # hook for implementation of automatic differentiation
+            throw("No derivative found for the specified activation function $(act[i]).")         
+        end
+    end
 
 	# offsets into the parameter vector
 	offs = calc_offsets(NNLayer, dims)
@@ -86,3 +98,4 @@ function unflatten_net!(mlp::MLP, buf::AbstractVector)
 		mlp.net[i].b = view(buf, toff+1:toff+tdims[1])
 	end
 end
+

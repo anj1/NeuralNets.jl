@@ -1,5 +1,4 @@
-# Just a collection of commonly-used activation functions
-
+# collection of commonly-used activation functions
 logis(x) = 1 ./(1 .+ exp(-x))
 logisd(x) = exp(x) ./ ((1 .+ exp(x)).^2)
 
@@ -10,3 +9,9 @@ ident(x) = x
 identd(x) = 1
 
 tanhd(x) = sech(x).^2
+
+# dictionary of commonly-used activation derivatives
+derivs = Dict{Function, Function}([logis => logisd, 
+                                   relu => relud, 
+                                   ident => identd, 
+                                   tanh => tanhd])
