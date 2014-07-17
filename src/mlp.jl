@@ -28,7 +28,7 @@ function MLP(genf::Function, layer_sizes::Vector{Int}, act::Vector{Function})
         if haskey(derivs,f) 
             push!(actd,derivs[f])
         else
-            push!(actd,autodif(f)) # automatically differentiate f with ForwardDiff.jl   
+            push!(actd,autodiff(f)) # automatically differentiate f with ForwardDiff.jl   
         end
     end
 
