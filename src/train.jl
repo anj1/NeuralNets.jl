@@ -94,6 +94,18 @@ function train{T}(nn_in::T,
 	nn
 end
 
+# train without validation data
+function train{T}(nn_in::T,
+	              trainx,
+	              traint;
+	              maxiter::Int=1000,
+	              tol::Real=1e-5,
+                  verbose::Bool=true,
+	              train_method=:gradient_descent,
+	              ep_iter::Int=5)
+	train(nn_in::T,trainx,traint;maxiter,tol,verbose,train_method,ep_iter)
+end
+
 function proc_results(r, gradnorm, verbose, ep_iter)
 	if verbose; println(r.trace[ep_iter]); end
 	gradnorm = cat(1, gradnorm, [r.trace[i].gradnorm for i = 1 : ep_iter])
