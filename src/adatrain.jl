@@ -7,13 +7,22 @@
 # ε:        small constant for numerical stability
 # eval:     how often we evaluate the loss function
 # verbose:  train with printed feedback about the error function
-function adatrain(mlp::MLP, p::TrainingParams, x, t, eval::Int=10, verbose::Bool=true)
-    η, c, λ = p.η, p.c, 1e-6
+function adatrain(mlp::MLP,
+                  x,
+                  t;
+                  iterations::Int=1000,
+                  tol::Real=1e-5,
+                  learning_rate=.3,
+                  lambda=1e-6,
+                  eval::Int=10,
+                  verbose::Bool=true)
+
+    η, c, λ = learning_rate, tol, lambda
     i = e_old = Δ = ∑ = 0
     e_new = loss(prop(mlp.net,x),t)
     n = size(x,2)
     converged::Bool = false
-    while (!converged && i < p.i) # while not converged and i less than maxiter
+    while (!converged && i < iterations) # while not converged and i less than maxiter
         i += 1
         # Start of the update step
         # eventually the update step here should be the sole definition of gdmtrain()
@@ -22,8 +31,7 @@ function adatrain(mlp::MLP, p::TrainingParams, x, t, eval::Int=10, verbose::Bool
         # flexibility with verification sets, etc...
         ∇,δ = backprop(mlp.net,x,t)
 
-        ∇ .* ∇
-        ∑ += ∇ .* ∇
+        ∑ += ∇ .^ 2
         ∇_adj = ∇ ./ (λ .+ sqrt(∑))
 
         Δ = η * ∇_adj # calculate Δ weights
