@@ -17,9 +17,10 @@ t = [
 # network topology
 layer_sizes = [2, 3, 3, 1]
 act   = [relu,  relu,  logis]
+actd  = [relud, relud, logisd]
 
 # initialize net
-mlp = MLP(randn, layer_sizes, act)
+mlp = MLP(randn, layer_sizes, act, actd)
 
 # training parameters
 p = TrainingParams(1000, 1e-5, .3, .6, :levenberg_marquardt)
