@@ -1,4 +1,5 @@
 # bring in definitions
+require("types.jl")
 require("activ.jl")
 require("mlp.jl")
 require("backprop.jl")

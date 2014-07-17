@@ -10,7 +10,7 @@ type NNLayer{T}
 end
 
 function Base.show(io::IO, l::NNLayer)
-    print(io, summary(l),"\n")
+    print(io, summary(l):,"\n")
     print(io, "activation functions:\n")
     print(io, l.a,", ",l.ad,"\n")
     print(io, "node weights:\n",l.w,"\n")
