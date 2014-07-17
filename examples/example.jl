@@ -1,9 +1,4 @@
-# bring in definitions
-require("../src/types.jl")
-require("../src/activations.jl")
-require("../src/mlp.jl")
-require("../src/backprop.jl")
-require("../src/train.jl")
+using NeuralNets
 
 # xor training data
 x = [

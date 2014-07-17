@@ -1,12 +1,6 @@
-# bring in definitions
-require("../src/types.jl")
-require("../src/activations.jl")
-require("../src/mlp.jl")
-require("../src/backprop.jl")
-require("../src/train.jl")
-
 using DataFrames 
 using MLBase
+using NeuralNets
 
 bicycle = readtable("./datasets/bicycle_demand.csv") # load test data
 
