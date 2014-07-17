@@ -16,8 +16,6 @@ t = [
     ]
 
 # network topology
-
-
 ind = size(x,1)
 outd = size(t,1)
 

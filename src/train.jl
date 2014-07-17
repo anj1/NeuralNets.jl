@@ -9,6 +9,17 @@ include("gdmtrain.jl")
 
 loss(y, t) = 0.5 * norm(y .- t).^2
 
+# possibly useful functions to diagnose convergence problems 
+# possibly to suggest learning rates with a while loop checking 
+# if the first step produces a NaN in any of the weights
+function Base.isnan(net::Array{NNLayer})
+    nans = 0 
+    for l in net
+        nans += sum(isnan(l.w)) + sum(isnan(l.b))
+    end
+    return nans > 0
+end
+Base.isnan(mlp::MLP) = isnan(mlp.net)
 
 function train{T}(nn_in::T, p::TrainingParams, x, t; verbose::Bool=true)
 	# todo: separate into training and test data
@@ -24,6 +35,12 @@ function train{T}(nn_in::T, p::TrainingParams, x, t; verbose::Bool=true)
 	if p.train_method == :gdmtrain
 		return gdmtrain(nn_in, p, x, t, 10, verbose)
 	end
+
+    if p.train_method == :lmtrain
+        return nothing
+        # return lmtrain(nn_in, stuff)
+    end
+
 
 	# todo: make this thread-safe
 	nn  = deepcopy(nn_in)
