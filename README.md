@@ -11,7 +11,9 @@ Some neat features include:
 Some less exciting features:
 * Flexible network topology with any combination of activation function/layer number.
 * Support for a number of common node actiation functions in addition to support for arbitrary activation functions with the use of automatic differentiation.
+* A broad range of training functions to chose from.
 
+Over time we hope to develop this library to encompass more modern types of neural networks, namely deep belief networks.
 
 ## Usage
 Currently we only have support for multi-layer perceptrons, these are instantiated by using the `MLP(genf,layer_sizes,act)` constructor  to describe the network topology and initialisation procedure as follows:
