@@ -21,7 +21,7 @@ function Base.show(io::IO, t::TrainState)
 end
 
 type TrainResult
-    converged::Bool    
+    converged::Bool
     method::ASCIIString
     iter::Int
     maxiter::Int

@@ -21,7 +21,7 @@ function train{T}(nn_in::T,
 	              valx,
 	              traint,
 	              valt;
-	              maxiter::Int=1000,
+	              maxiter::Int=100,
 	              tol::Real=1e-5,
                 verbose::Bool=true,
 	              train_method=:gradient_descent,
