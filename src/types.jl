@@ -79,15 +79,3 @@ type TrainResult
     converged::Bool
     loss::Vector{Real}
 end
-
-function Base.show(io::IO, result::TrainResult)
-    @printf method
-    @printf iter
-    @printf maxiter
-    @printf converged
-    if !isempty(result.misc)
-        for (key, value) in t.misc
-            @printf io " * %s: %s\n" key value
-        end
-    end
-end
