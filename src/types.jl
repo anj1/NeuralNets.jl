@@ -72,9 +72,22 @@ function Base.show(io::IO, t::TrainState)
 end
 
 type TrainResult
+    converged::Bool    
     method::ASCIIString
     iter::Int
     maxiter::Int
-    converged::Bool
     loss::Vector{Real}
+    misc::Dict
+end
+
+function Base.show(io::IO, result::TrainResult)
+    @printf method
+    @printf iter
+    @printf maxiter
+    @printf converged
+    if !isempty(result.misc)
+        for (key, value) in t.misc
+            @printf io " * %s: %s\n" key value
+        end
+    end
 end
