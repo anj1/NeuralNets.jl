@@ -22,12 +22,13 @@ function gdmtrain(mlp::MLP,
     e_new = loss(prop(mlp.net,x),t)
     n = size(x,2)
     converged::Bool = false
-    while (!converged && i < maxiter) # while not converged and i less than maxiter
+    while (!converged && i < maxiter)
         i += 1
         ∇,δ = backprop(mlp.net,x,t)
         Δw_new = η*∇ .+ m*Δw_old         # calculate Δ weights   
         mlp.net = mlp.net .- Δw_new      # update weights                       
         Δw_old = Δw_new 
+
         if i % eval == 0  # recalculate loss every eval number iterations
             e_old = e_new
             e_new = loss(prop(mlp.net,x),t)
@@ -65,20 +66,17 @@ function adatrain(mlp::MLP,
                   verbose::Bool=true)
 
     η, c, λ = learning_rate, tol, lambda
-    i = e_old = Δnet = ∑ = 0
+    i = e_old = Δnet = sumgrad = 0
     e_new = loss(prop(mlp.net,x),t)
     n = size(x,2)
     converged::Bool = false
-    while (!converged && i < maxiter) # while not converged and i less than maxiter
+    while (!converged && i < maxiter)
         i += 1
         ∇,δ = backprop(mlp.net,x,t)
+        sumgrad += ∇ .^ 2       # store sum of squared past gradients
+        Δw = η * ∇ ./ (λ .+ (sumgrad .^ 0.5))   # calculate Δ weights
+        mlp.net = mlp.net .- Δw                 # update weights
 
-        ∑ += ∇ .^ 2
-        ∇_adj = ∇ ./ (λ .+ (∑ .^ 0.5))
-
-        Δw = η * ∇_adj # calculate Δ weights
-
-        mlp.net = mlp.net .- Δw     # update weights
         if i % eval == 0  # recalculate loss every eval number iterations
             e_old = e_new
             e_new = loss(prop(mlp.net,x),t)
