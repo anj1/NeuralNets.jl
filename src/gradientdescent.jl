@@ -10,7 +10,7 @@
 function gdmtrain(mlp::MLP,
                   x,
                   t;
-                  iterations::Int=1000,
+                  maxiter::Int=1000,
                   tol::Real=1e-5,
                   learning_rate=.3,
                   momentum_rate=.6,
@@ -22,7 +22,7 @@ function gdmtrain(mlp::MLP,
     e_new = loss(prop(mlp.net,x),t)
     n = size(x,2)
     converged::Bool = false
-    while (!converged && i < iterations) # while not converged and i less than maxiter
+    while (!converged && i < maxiter) # while not converged and i less than maxiter
         i += 1
         ∇,δ = backprop(mlp.net,x,t)
         Δw_new = η*∇ .+ m*Δw_old         # calculate Δ weights   
@@ -57,7 +57,7 @@ end
 function adatrain(mlp::MLP,
                   x,
                   t;
-                  iterations::Int=1000,
+                  maxiter::Int=1000,
                   tol::Real=1e-5,
                   learning_rate=.3,
                   lambda=1e-6,
@@ -65,20 +65,20 @@ function adatrain(mlp::MLP,
                   verbose::Bool=true)
 
     η, c, λ = learning_rate, tol, lambda
-    i = e_old = Δ = ∑ = 0
+    i = e_old = Δnet = ∑ = 0
     e_new = loss(prop(mlp.net,x),t)
     n = size(x,2)
     converged::Bool = false
-    while (!converged && i < iterations) # while not converged and i less than maxiter
+    while (!converged && i < maxiter) # while not converged and i less than maxiter
         i += 1
         ∇,δ = backprop(mlp.net,x,t)
 
         ∑ += ∇ .^ 2
         ∇_adj = ∇ ./ (λ .+ (∑ .^ 0.5))
 
-        Δ = η * ∇_adj # calculate Δ weights
+        Δw = η * ∇_adj # calculate Δ weights
 
-        mlp.net = mlp.net .- Δ      # update weights
+        mlp.net = mlp.net .- Δw     # update weights
         if i % eval == 0  # recalculate loss every eval number iterations
             e_old = e_new
             e_new = loss(prop(mlp.net,x),t)
