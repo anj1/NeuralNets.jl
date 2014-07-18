@@ -21,7 +21,7 @@ Currently we only have support for multi-layer perceptrons, these are instantiat
 * `layer_sizes::Vector{Int}` is a vector whose first element is the number of input nodes, and the last element is the number of output nodes, intermediary elements are the numbers of hidden nodes per layer;
 * `act::Vector{Function}` is the vector of activation functions corresponding to each layer.
 
-For example, `MLP(randn, [4,8,8,2], [relu,logis,ident])` returns a 3-layer network with 4 input nodes, 2 output nodes, and two hidden layers comprised of 8 nodes each. The first hidden layer uses a `relu` activation function, the second uses `logis`. The output nodes lack any activation function and so we specify them with the `ident` 'function'—-but this could just as easily be another `logis` to ensure good convergence behaviour on a 1-of-k target vector like you might use with a classification problem.
+For example, `MLP(randn, [4,8,8,2], [relu,logis,ident])` returns a 3-layer network with 4 input nodes, 2 output nodes, and two hidden layers comprised of 8 nodes each. The first hidden layer uses a `relu` activation function, the second uses `logis`. The output nodes lack any activation function and so we specify them with the `ident` 'function'—but this could just as easily be another `logis` to ensure good convergence behaviour on a 1-of-k target vector like you might use with a classification problem.
 
 Once your neural network is initialised, predictions are made with the `prop(mlp::MLP,x)` command, where `x` is a column vector of the node inputs. Of course `prop()` is vectorised, so inputting a k by n array of data points returns a j by n array of predictions, where k is the number of input nodes, and j is the number of output nodes.
 
