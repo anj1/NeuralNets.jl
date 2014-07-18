@@ -24,14 +24,8 @@ function gdmtrain(mlp::MLP,
     converged::Bool = false
     while (!converged && i < iterations) # while not converged and i less than maxiter
         i += 1
-        # Start of the update step
-        # eventually the update step here should be the sole definition of gdmtrain()
-        # and we can roll all of the ancillary things in to train()
-        # to economise on code to handle convergence notifications
-        # flexibility with verification sets, etc...
         ∇,δ = backprop(mlp.net,x,t)
-        Δw_new = η*∇ .+ m*Δw_old  # calculate Δ weights
-        # End of the update calculation step            
+        Δw_new = η*∇ .+ m*Δw_old         # calculate Δ weights   
         mlp.net = mlp.net .- Δw_new      # update weights                       
         Δw_old = Δw_new 
         if i % eval == 0  # recalculate loss every eval number iterations
@@ -77,11 +71,6 @@ function adatrain(mlp::MLP,
     converged::Bool = false
     while (!converged && i < iterations) # while not converged and i less than maxiter
         i += 1
-        # Start of the update step
-        # eventually the update step here should be the sole definition of gdmtrain()
-        # and we can roll all of the ancillary things in to train()
-        # to economise on code to handle convergence notifications
-        # flexibility with verification sets, etc...
         ∇,δ = backprop(mlp.net,x,t)
 
         ∑ += ∇ .^ 2
@@ -89,7 +78,6 @@ function adatrain(mlp::MLP,
 
         Δ = η * ∇_adj # calculate Δ weights
 
-        # End of the update calculation step
         mlp.net = mlp.net .- Δ      # update weights
         if i % eval == 0  # recalculate loss every eval number iterations
             e_old = e_new
