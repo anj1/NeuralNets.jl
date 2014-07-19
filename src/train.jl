@@ -16,6 +16,17 @@ function Base.isnan(net::Array{NNLayer})
 end
 Base.isnan(mlp::MLP) = isnan(mlp.net)
 
+# batch
+# function to retrieve a random subset of data
+# currently quite ugly, if anyone knows how to do this better go ahead
+function batch(b::Int,x::Array,t::Array)
+    n = size(x,2)
+    b > n && throw("Error: Batch size larger than the number of data points.")
+    index = shuffle([i for i in 1:n])
+    index = index[1:b]
+    return x[:,index],t[:,index]
+end
+
 function train{T}(nn_in::T,
 	              trainx,
 	              valx,
