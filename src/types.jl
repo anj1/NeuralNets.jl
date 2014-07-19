@@ -16,7 +16,7 @@ function Base.show(io::IO, t::TrainState)
     if length(t.loss) == 1
         @printf io "i: %6d   %14e\n" t.iter t.loss[1]
     else
-        @printf io "i: %6d   %14e  %14e\n" t.iter t.loss[1] t.loss[2]
+        @printf io "i: %6d   %14e   %14e\n" t.iter t.loss[1] t.loss[2]
     end
 end
 
