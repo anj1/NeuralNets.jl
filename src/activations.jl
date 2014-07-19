@@ -14,11 +14,13 @@ identd(x) = 1
 tanhd(x) = sech(x).^2
 
 # dictionary of commonly-used activation derivatives
-derivs = Dict{Function, Function}([logis     => logisd, 
+derivs = Dict{Function, Function}([
+                                   logis     => logisd, 
                                    logissafe => logissafed,
                                    relu      => relud, 
                                    ident     => identd, 
-                                   tanh      => tanhd])
+                                   tanh      => tanhd
+                                   ])
 
 # automatic differentiateion with ForwardDiff.jl
 # due to limitations of ForwardDiff.jl, this function
