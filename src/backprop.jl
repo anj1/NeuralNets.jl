@@ -20,7 +20,9 @@ end
 function backprop!{T}(net::Vector{T}, stor::Vector{T}, x, t)
 	if length(net) == 0 # Final layer
 		# Error is simply difference with target
-		x .- t
+		r = x .- t
+		r[find(isnan(r))]=0
+		r
 	else # Intermediate layers
 		# current layer
 		l = net[1]

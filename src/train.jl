@@ -60,19 +60,21 @@ function train{T}(nn_in::T,
 	r = []
 	if train_method == :levenberg_marquardt
 		out_dim = size(traint,1)
-		out_dim==1 || throw("Error: LM only supported with one output neuron.")
-
 		ln = nn.offs[end]
 		n = size(trainx,2)
-		jacobian = Array(Float64, ln, n)
+		jacobian = Array(Float64, ln, n, out_dim)
 		function g(nd)
 			unflatten_net!(nn, vec(nd))
 			for i = 1 : n
-				jacobcol = view(jacobian, :, i)
-				unflatten_net!(nng, jacobcol)
-				backprop!(nn.net, nng.net, trainx[:,i], zeros(out_dim))
+				for j = 1 : out_dim
+					jacobcol = view(jacobian, :, i, j)
+					unflatten_net!(nng, jacobcol)
+					t = fill(NaN, (out_dim,))
+					t[j]=0.0
+					backprop!(nn.net, nng.net, trainx[:,i], t)
+				end
 			end
-			jacobian'
+			reshape(jacobian, ln, n*out_dim)'
 		end
 
 		while numiter <= maxiter
