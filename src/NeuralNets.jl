@@ -14,6 +14,7 @@ export MLP
 
 # multi-layer perceptrons
 include("activations.jl")
+include("losses.jl")
 include("mlp.jl")
 
 # training
