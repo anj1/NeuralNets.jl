@@ -5,8 +5,7 @@ function batch(b::Int,x::Array,t::Array)
     n = size(x,2)
     b == n && return x,t
     b > n && throw("Error: Batch size larger than the number of data points supplied.")
-    index = shuffle([i for i in 1:n])
-    index = index[1:b] 
+    index = rand(1:n, b)
     return x[:,index],t[:,index]
 end
 
