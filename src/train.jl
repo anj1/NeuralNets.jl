@@ -21,9 +21,10 @@ Base.isnan(mlp::MLP) = isnan(mlp.net)
 # currently quite ugly, if anyone knows how to do this better go ahead
 function batch(b::Int,x::Array,t::Array)
     n = size(x,2)
-    b > n && throw("Error: Batch size larger than the number of data points.")
+    b == n && return x,t
+    b > n && throw("Error: Batch size larger than the number of data points supplied.")
     index = shuffle([i for i in 1:n])
-    index = index[1:b]
+    index = index[1:b] 
     return x[:,index],t[:,index]
 end
 
@@ -34,7 +35,7 @@ function train{T}(nn_in::T,
 	              valt;
 	              maxiter::Int=100,
 	              tol::Real=1e-5,
-                verbose::Bool=true,
+                  verbose::Bool=true,
 	              train_method=:gradient_descent,
 	              ep_iter::Int=5)
 
