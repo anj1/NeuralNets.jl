@@ -15,7 +15,7 @@ log_loss(y, t) = sum(- ((t .* log(y)) + ((1 - t) .* log(1 - y)))) # - t * log(y)
 log_lossd(y, t) = (t .- y) ./ ((y .- 1) .* y) # (t - y) / ((y - 1) * y)
 
 # dictionary of commonly-used loss derivatives
-derivs = Dict{Function, Function}([
+lossderivs = Dict{Function, Function}([
                                    squared_loss      => squared_lossd,
                                    linear_loss       => linear_lossd,
                                    hinge_loss        => hinge_lossd,
