@@ -21,9 +21,3 @@ derivs = Dict{Function, Function}([
                                    hinge_loss        => hinge_lossd,
                                    log_loss          => log_lossd
                                    ])
-
-function autodiff(loss::Function)
-    f(x) = loss(x[1])
-    forwarddiff_derivative(x::Float64) = forwarddiff_gradient(f,Float64)([x])[1]
-    return forwarddiff_derivative
-end
