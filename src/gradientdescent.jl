@@ -75,7 +75,6 @@ function adatrain(mlp::MLP,
                   maxiter::Int=1000,
                   tol::Real=1e-5,
                   learning_rate=.3,
-                  batch_size=size(x,2),
                   lambda=1e-6,
                   eval::Int=10,
                   verbose::Bool=true)
