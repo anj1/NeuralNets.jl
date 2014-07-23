@@ -10,7 +10,7 @@ Some neat features include:
 
 Some less exciting features:
 * Flexible network topology with any combination of activation function/layer number.
-* Support for a number of common node actiation functions in addition to support for arbitrary activation functions with the use of automatic differentiation.
+* Support for a number of common node activation functions in addition to support for arbitrary activation functions with the use of automatic differentiation.
 * A broad range of training algorithms to chose from.
 
 Over time we hope to develop this library to encompass more modern types of neural networks, namely deep belief networks.
@@ -36,7 +36,7 @@ There is 'native' support for the following activation functions. If you define 
 ### Training Methods
 Once the MLP type is constructed we train it using one of several provided training functions.
 
-* `train(nn, trainx, valx, traint, valt)`: This training method relies on calling the external [Optim.jl](https://github.com/JuliaOpt/Optim.jl) package. By default it uses the `gradient_descent` algorithm. However, by setting the `train_method` parameter, the following algorithms can also be selected: `levenberg_marquardt`, `momentum_gradient_descent`, or `nelder-mead`. The function accepts two data sets: the training data set (inputs and outputs given with `trainx` and `traint`) and the validation set (`valx`, `valt`). Input data must be a matrix with each data point occuring as a column of the matrix. Optional parameters include:
+* `train(nn, trainx, valx, traint, valt)`: This training method relies on calling the external [Optim.jl](https://github.com/JuliaOpt/Optim.jl) package. By default it uses the `gradient_descent` algorithm. However, by setting the `train_method` parameter, the following algorithms can also be selected: `levenberg_marquardt`, `momentum_gradient_descent`, or `nelder_mead`. The function accepts two data sets: the training data set (inputs and outputs given with `trainx` and `traint`) and the validation set (`valx`, `valt`). Input data must be a matrix with each data point occuring as a column of the matrix. Optional parameters include:
     * `maxiter` (default: 100): Number of iterations before giving up.
     * `tol` (default: 1e-5): Convergence threshold. Does not affect `levenberg_marquard`.
     * `ep_iterl` (default: 5): Performance is evaluated on the validation set every `ep_iter` iterations. A smaller number gives slightly better convergence but each iteration takes a slightly longer time.
@@ -45,8 +45,8 @@ Once the MLP type is constructed we train it using one of several provided train
 * `gdmtrain(nn, x, t)`: This is a natively-implemented gradient descent training algorithm with momentum. Optional parameters include:
     * `maxiter` (default: 1000): Number of iterations before giving up.
     * `tol` (default: 1e-5): Convergence threshold.
-    * `learning_rate` (default: .3):
-    * `momentum_rate` (default: .6): amount of momentum to apply. Try 0 for no momentum.
+    * `learning_rate` (default: .3): Learning rate of gradient descent. While larger values may converge faster, using values that are too large may result in lack of convergence (you can typically see this happening with weights going to infinity and getting lots of NaNs). It's suggested to start from a small value and increase if it improves learning.
+    * `momentum_rate` (default: .6): Amount of momentum to apply. Try 0 for no momentum.
     * `eval` (default: 10): The network is evaluated for convergence every `eval` iterations. A smaller number gives slightly better convergence but each iteration takes a slightly longer time.
     * `verbose` (default: true): Whether or not to print out information on the training state of the network.
 * `adatrain`
