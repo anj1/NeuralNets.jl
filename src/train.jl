@@ -94,9 +94,9 @@ function train{T}(nn_in::T,
 		end
 
 		while numiter <= maxiter
-			r = optimize(nd -> 0.5*norm(f(nd)).^2, g!, nn.buf, method=train_method, grtol=tol, iterations=maxiters)
+			r = optimize(nd -> 0.5*norm(f(nd)).^2, g!, nn.buf, method=train_method, grtol=tol, iterations=ep_iter)
 
-			gradnorm = proc_results(r, gradnorm, verbose, ep_iter)
+			#gradnorm = proc_results(r, gradnorm, verbose, ep_iter)
 			numiter += ep_iter
 
 			lastval, vc = convg_check(r, nn, valx, valt, lastval)

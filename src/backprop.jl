@@ -9,7 +9,7 @@ end
 prop(mlp::MLP,x) = prop(mlp.net,x)
 
 # add some 'missing' functionality to ArrayViews
-function setindex!{T}(dst::ContiguousView, src::Vector{T}, idx::UnitRange)
+function setindex!{T}(dst::ContiguousView, src::Array{T}, idx::UnitRange)
 	offs = dst.offset
 	dst.arr[offs+idx.start:offs+idx.stop] = src
 end
