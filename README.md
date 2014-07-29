@@ -43,6 +43,7 @@ Once the MLP type is constructed we train it using one of several provided train
     * `verbose` (default: true): Whether or not to print out information on the training state of the network.
 
 * `gdmtrain(nn, x, t)`: This is a natively-implemented gradient descent training algorithm with momentum. Optional parameters include:
+    * `batch_size` (default: n): Randomly selected subset of `x` to use when training extremely large data sets. Use this feature for 'stochastic' gradient descent.
     * `maxiter` (default: 1000): Number of iterations before giving up.
     * `tol` (default: 1e-5): Convergence threshold.
     * `learning_rate` (default: .3): Learning rate of gradient descent. While larger values may converge faster, using values that are too large may result in lack of convergence (you can typically see this happening with weights going to infinity and getting lots of NaNs). It's suggested to start from a small value and increase if it improves learning.
