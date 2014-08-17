@@ -2,7 +2,7 @@ using DataFrames
 using MLBase
 using NeuralNets
 
-bicycle = readtable("./datasets/bicycle_demand.csv") # load test data
+bicycle = readtable("./datasets/BicycleDemand/bicycle_demand.csv") # load test data
 
 function dataprep(data)
     year    = int(map(x->x[1:4],data[:datetime]))
