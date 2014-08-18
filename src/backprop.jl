@@ -34,6 +34,14 @@ function backprop!{T}(net::Vector{T}, stor::Vector{T}, x, t)
 		# compute error recursively
 		δ = l.ad(h) .* backprop!(net[2:end], stor[2:end], y, t)
 
+		# KL divergence penalty for sparsity constraint
+		if net[1].sparse
+			β  = net[1].sparsecoef
+			ρ  = net[1].sparsity
+			pm = net[1].meanact
+			δ += β*((1-ρ)./(1.-pm) - ρ./pm)
+		end
+
 		# calculate weight and bias gradients
 		stor[1].w[:] = vec(δ*x')
 		stor[1].b[:] = sum(δ,2)
