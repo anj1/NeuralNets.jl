@@ -37,7 +37,7 @@ function gdmtrain(mlp::MLP,
     while (!converged && i < maxiter)
         i += 1
         x_batch,t_batch = batch(b,x,t)
-        ∇,δ = backprop(mlp.net,x_batch,t_batch)
+        ∇ = backprop(mlp.net,x_batch,t_batch)
         Δw_new = η*∇ .+ m*Δw_old         # calculate Δ weights   
         mlp.net = mlp.net .- Δw_new      # update weights                       
         Δw_old = Δw_new 
@@ -87,7 +87,7 @@ function adatrain(mlp::MLP,
     while (!converged && i < maxiter)
         i += 1
         x_batch,t_batch = batch(b,x,t)
-        ∇,δ = backprop(mlp.net,x_batch,t_batch)
+        ∇ = backprop(mlp.net,x_batch,t_batch)
         sumgrad += ∇ .^ 2       # store sum of squared past gradients
         Δw = η * ∇ ./ (λ .+ (sumgrad .^ 0.5))   # calculate Δ weights
         mlp.net = mlp.net .- Δw                 # update weights

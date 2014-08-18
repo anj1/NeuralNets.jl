@@ -2,7 +2,7 @@ function prop(net, x)
 	if length(net) == 0 # First layer
 		x
 	else # Intermediate layers
-		net[end].a(net[end] * prop(net[1:end-1], x))
+		net[end].a(applylayer(net[end], prop(net[1:end-1], x)))
 	end
 end
 
@@ -17,54 +17,49 @@ end
 # backpropagation;
 # with memory for gradients pre-allocated.
 # (gradients returned in stor)
-function backprop!{T}(net::Vector{T}, stor::Vector{T}, x, t)
+function backprop!{T}(net::Vector{T}, stor::Vector{T}, x, t, inplace)
 	if length(net) == 0 # Final layer
 		# Error is simply difference with target
 		r = x .- t
-		r[find(isnan(r))]=0
+		r[isnan(r)]=0
 		r
 	else # Intermediate layers
 		# current layer
 		l = net[1]
 
 		# forward activation
-		h = l * x
+		h = applylayer(l, x)
 		y = l.a(h)
 
 		# compute error recursively
-		δ = l.ad(h) .* backprop!(net[2:end], stor[2:end], y, t)
+		δ = l.ad(h) .* backprop!(net[2:end], stor[2:end], y, t, inplace)
 
 		# KL divergence penalty for sparsity constraint
-		if net[1].sparse
-			β  = net[1].sparsecoef
-			ρ  = net[1].sparsity
-			pm = net[1].meanact
+		if l.sparse
+			β  = l.sparsecoef
+			ρ  = l.sparsity
+			pm = l.meanact
 			δ += β*((1-ρ)./(1.-pm) - ρ./pm)
 		end
 
 		# calculate weight and bias gradients
-		stor[1].w[:] = vec(δ*x')
-		stor[1].b[:] = sum(δ,2)
+		if inplace
+			stor[1].w[:] = vec(δ*x')
+			stor[1].b[:] = sum(δ,2)
+		else
+			stor[1].w    =     δ*x'
+			stor[1].b    = vec(sum(δ,2))
+		end
 
 		# propagate error
 		l.w' * δ
 	end
 end
 
-# backprop(net,x,t) returns array of gradients and error for net 
-# todo: make gradient unshift! section more generic
+backprop!{T}(net::Vector{T}, stor::Vector{T}, x, t) = backprop!(net, stor, x, t, true)
+
 function backprop{T}(net::Vector{T}, x, t)
-    if length(net) == 0   	# Final layer
-        δ  = x .- t     	# Error (δ) is simply difference with target
-        grad = T[]        	# Initialize weight gradient array
-    else                	# Intermediate layers
-        l = net[1]
-        h = l * x           # Not a typo!
-        y = l.a(h)
-        grad,δ = backprop(net[2:end], y, t)
-        δ = l.ad(h) .* δ
-        unshift!(grad,NNLayer(δ*x',vec(sum(δ,2)),exp,exp))  # Weight gradient
-        δ = l.w' * δ
-    end
-    return grad,δ
+	stor = [copy(l) for l in net]
+	backprop!(net, stor, x, t, false)
+	stor
 end

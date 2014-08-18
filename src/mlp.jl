@@ -30,8 +30,7 @@ type MLP
 end
 
 # In all operations between two NNLayers, the activations functions are taken from the first NNLayer
-*(l::NNLayer, x::Array) = l.w*x .+ l.b
-*(l::NNLayer, x::Array) = l.w*x .+ l.b
+applylayer(l::NNLayer, x::Array) = l.w*x .+ l.b
 .*(c::Number, l::NNLayer)  = begin l2=copy(l); l2.w=l.w*c;    l2.b=l.b*c;    l2 end
 .*(l::NNLayer, m::NNLayer) = begin l2=copy(l); l2.w=l.w.*m.w; l2.b=l.b.*m.b; l2 end
 *(l::NNLayer, m::NNLayer)  = begin l2=copy(l); l2.w=l.w.*m.w; l2.b=l.b.*m.b; l2 end
