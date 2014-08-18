@@ -38,7 +38,7 @@ function backprop!{T}(net::Vector{T}, stor::Vector{T}, x, t, inplace)
 		if l.sparse
 			β  = l.sparsecoef
 			ρ  = l.sparsity
-			pm = l.meanact
+			pm = vec(mean(y,2))
 			δ += β*((1-ρ)./(1.-pm) - ρ./pm)
 		end
 

@@ -12,14 +12,14 @@ type NNLayer{T}
     sparse::Bool
     sparsecoef::T
 	sparsity::T
-	meanact::AbstractVector{T}
+	#meanact::AbstractVector{T}
 end
 
 # default with no sparsity
 NNLayer{T}(w::AbstractMatrix{T},b::AbstractVector{T},a::Function,ad::Function) =
-	NNLayer(w,b,a,ad,false,0.0,0.0,T[])
+	NNLayer(w,b,a,ad,false,0.0,0.0)
 
-copy(l::NNLayer) = NNLayer(l.w,l.b,l.a,l.ad,l.sparse,l.sparsecoef,l.sparsity,l.meanact)
+copy(l::NNLayer) = NNLayer(l.w,l.b,l.a,l.ad,l.sparse,l.sparsecoef,l.sparsity)
 
 type MLP
     net::Vector{NNLayer}
