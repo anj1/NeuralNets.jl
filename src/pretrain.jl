@@ -1,16 +1,19 @@
 # layer-wise pretraining for deep autoencoders
-# net is the layers of the net
+# nn is the network
 # x: training data
 # xn: noisy training data
-function pretrain(net::Vector{T}, x, xn, act, actd, trainfunc, trainargs...)
+function pretrain{T}(nn::T, x, xn, act, actd, trainfunc, trainargs...)
+	# for each layer in the network
 	for i = 1 : length(nn.net)-1
-		# build this network layer (TODO: make a bit more generic)
+		# build this autoencoder layer
 		l = nn.net[i]
-		netp = [l, T(l.w', zeros(size(x,1)), act, actd)]
+		curmlp = autenc(T, l)
 
 		# train this network layer
-		# TODO: needs to call with entire structure, not net
-		trainfunc(netp, x, xn, trainargs...)
+		curmlp = trainfunc(curmlp, x, xn, trainargs...)
+
+		# use parameters of first layer
+		nn.net[i] = curmlp.net[1]
 
 		# propagate inputs & noisy inputs
 		x  = prop([l], x)

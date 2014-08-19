@@ -17,7 +17,7 @@ end
 
 # default with no sparsity
 NNLayer{T}(w::AbstractMatrix{T},b::AbstractVector{T},a::Function,ad::Function) =
-	NNLayer(w,b,a,ad,false,0.0,0.0)
+	NNLayer(w,b,a,ad,false,0.0,0.0,T[])
 
 copy(l::NNLayer) = NNLayer(l.w,l.b,l.a,l.ad,l.sparse,l.sparsecoef,l.sparsity)
 
@@ -88,6 +88,13 @@ function MLP(genf::Function, layer_sizes::Vector{Int}, act::Vector{Function})
 	unflatten_net!(mlp, buf)
 
 	mlp
+end
+
+# generate an MLP autoencoder from existing layer
+function autenc(::Type{MLP}, l::NNLayer, act, actd)
+	dims = [size(l.w), size(l.w')]
+	net = [l, NNLayer(l.w', zeros(size(l.w,2)), act, actd)]
+	mlp = MLP(net, dims, [], [], false)
 end
 
 # Given a flattened vector (buf), update the neural
