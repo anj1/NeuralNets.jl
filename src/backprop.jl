@@ -14,6 +14,10 @@ function setindex!{T}(dst::ContiguousView, src::Array{T}, idx::UnitRange)
 	dst.arr[offs+idx.start:offs+idx.stop] = src
 end
 
+# default error-scattering function for _most_ types of neural net;
+# convolutional neural nets have their own (see e.g. lcnn.jl)
+scatter{T}(::AbstractMatrix{T}, δ, x) = δ*x'
+
 # backpropagation;
 # with memory for gradients pre-allocated.
 # (gradients returned in stor)
@@ -44,10 +48,10 @@ function backprop!{T}(net::Vector{T}, stor::Vector{T}, x, t, inplace)
 
 		# calculate weight and bias gradients
 		if inplace
-			stor[1].w[:] = vec(δ*x')
+			stor[1].w[:] = vec(scatter(w,δ,x'))
 			stor[1].b[:] = sum(δ,2)
 		else
-			stor[1].w    =     δ*x'
+			stor[1].w    = scatter(w,δ,x')
 			stor[1].b    = vec(sum(δ,2))
 		end
 

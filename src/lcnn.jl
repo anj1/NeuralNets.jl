@@ -4,7 +4,6 @@
 # the type of CNN here is a set of 2D filters that are shifted in the
 # columnar direction but not the row direction.
 
-
 # this represents a linear 1D filter
 type Filter1D{T}
 	fk::Vector{Complex{T}}
@@ -14,7 +13,7 @@ end
 ctranspose(f::Filter1D) = Filter1D(conj(f.fk))
 
 # simulate δ*x' where x is the input and δ are the errors.
-scatter{T}(::Type{Filter1D{T}}, δ, x) = Filter1D(conj(fft(δ)).*fft(x))
+scatter{T}(f::Type{Filter1D{T}}, δ, x) = Filter1D(conj(fft(δ)).*fft(x))
 
 # this represents a set of filters that can be
 # circularly shifted along the columnar direction
@@ -50,8 +49,23 @@ function *(w::ShiftFilterBank, x::Matrix)
 end
 
 # simulate δ*x' where x is the input and δ are the errors.
-function scatter{T}(::ShiftFilterBank{T}, δ, x)
+function scatter{T}(w::ShiftFilterBank{T}, δ::Vector{T}, x::Vector{T})
+	# ncol is the number of image columns
+	(nrow, ncol) = size(w)
 
+	# N is the size of each column
+	(N, r) = divrem(length(x),ncol)
+	r == 0 || throw(ArgumentError("Dimension mismatch"))
+
+	thisδ = [x[N*(j-1)+1:N*j] for j=1:nrow]
+	outw = Array(ShiftFilterBank{T},nrow,ncol)
+	for i = 1 : ncol
+		thisx = x[N*(i-1)+1:N*i]
+		for j = 1 : nrow
+			outw[i,j] = scatter(Filter1D{T}, thisδ[j], thisx)
+		end
+	end
+	outw
 end
 
 
