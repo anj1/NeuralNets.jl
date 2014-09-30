@@ -2,7 +2,7 @@ function prop(net, x)
 	if length(net) == 0 # First layer
 		x
 	else # Intermediate layers
-		net[end].a(applylayer(net[end], prop(net[1:end-1], x)))
+		net[end].a(applylayer(net[end].w, net[end].b, prop(net[1:end-1], x)))
 	end
 end
 
@@ -34,7 +34,7 @@ function backprop!{T}(net::Vector{T}, stor::Vector{T}, x, t, inplace)
 		l = net[1]
 
 		# forward activation
-		h = applylayer(l, x)
+		h = applylayer(l.w, l.b, x)
 		y = l.a(h)
 
 		# compute error recursively

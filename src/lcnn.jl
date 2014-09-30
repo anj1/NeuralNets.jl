@@ -4,6 +4,8 @@
 # the type of CNN here is a set of 2D filters that are shifted in the
 # columnar direction but not the row direction.
 
+# TODO: unify interface for scatter()
+
 # this represents a linear 1D filter
 type Filter1D{T}
 	fk::Vector{Complex{T}}
@@ -48,16 +50,22 @@ function *(w::ShiftFilterBank, x::Matrix)
 	w*vec(x)
 end
 
+function applylayer{T}(w::ShiftFilterBank{T}, b::AbstractVector{T}, x::Array)
+	(N, r) = divrem(length(x), length(b))
+	r == 0 || throw(ArgumentError("Dimension mismatch"))
+	w*x .+ vec(repmat(b,int(length(x)/length(b)),1))
+end
+
 # simulate δ*x' where x is the input and δ are the errors.
 function scatter{T}(w::ShiftFilterBank{T}, δ::Vector{T}, x::Vector{T})
 	# ncol is the number of image columns
 	(nrow, ncol) = size(w)
 
-	# N is the size of each column
+	# N is the length of each column
 	(N, r) = divrem(length(x),ncol)
 	r == 0 || throw(ArgumentError("Dimension mismatch"))
 
-	thisδ = [x[N*(j-1)+1:N*j] for j=1:nrow]
+	thisδ = [δ[N*(j-1)+1:N*j] for j=1:nrow]
 	outw = Array(ShiftFilterBank{T},nrow,ncol)
 	for i = 1 : ncol
 		thisx = x[N*(i-1)+1:N*i]
@@ -69,14 +77,15 @@ function scatter{T}(w::ShiftFilterBank{T}, δ::Vector{T}, x::Vector{T})
 end
 
 function setbias{T}(w::ShiftFilterBank{T}, δ::Vector{T})
-	# ncol is the number of image columns
+	# nrow is the number of filters in the filter bank
 	(nrow, ncol) = size(w)
 
-	# N is the size of each column
-	(N, r) = divrem(length(δ),ncol)
+	# N is the size of each row of the image
+	# i.e. number of filters in each bank
+	(N, r) = divrem(length(δ),nrow)
 	r == 0 || throw(ArgumentError("Dimension mismatch"))
 
-	thisδ = [x[N*(j-1)+1:N*j] for j=1:nrow]
+	thisδ = [δ[N*(j-1)+1:N*j] for j=1:nrow]
 	map(sum, thisδ)
 end
 
