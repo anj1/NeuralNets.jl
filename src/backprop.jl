@@ -17,6 +17,8 @@ end
 # default error-scattering function for _most_ types of neural net;
 # convolutional neural nets have their own (see e.g. lcnn.jl)
 scatter{T}(::AbstractMatrix{T}, δ, x) = δ*x'
+# and also bias computing function
+setbias{T}(::AbstractMatrix{T}, δ) = δ
 
 # backpropagation;
 # with memory for gradients pre-allocated.
@@ -48,11 +50,11 @@ function backprop!{T}(net::Vector{T}, stor::Vector{T}, x, t, inplace)
 
 		# calculate weight and bias gradients
 		if inplace
-			stor[1].w[:] = vec(scatter(w,δ,x'))
-			stor[1].b[:] = sum(δ,2)
+			stor[1].w[:] = vec(scatter(l.w,δ,x'))
+			stor[1].b[:] = setbias(l.b,sum(δ,2))
 		else
-			stor[1].w    = scatter(w,δ,x')
-			stor[1].b    = vec(sum(δ,2))
+			stor[1].w    = scatter(l.w,δ,x')
+			stor[1].b    = vec(setbias(l.b,sum(δ,2)))
 		end
 
 		# propagate error

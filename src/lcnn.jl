@@ -68,6 +68,17 @@ function scatter{T}(w::ShiftFilterBank{T}, δ::Vector{T}, x::Vector{T})
 	outw
 end
 
+function setbias{T}(w::ShiftFilterBank{T}, δ::Vector{T})
+	# ncol is the number of image columns
+	(nrow, ncol) = size(w)
+
+	# N is the size of each column
+	(N, r) = divrem(length(δ),ncol)
+	r == 0 || throw(ArgumentError("Dimension mismatch"))
+
+	thisδ = [x[N*(j-1)+1:N*j] for j=1:nrow]
+	map(sum, thisδ)
+end
 
 # randfilt1d() = Filter1D(fft(randn(4)))
 # w = [randfilt1d() for i=1:2,j=1:2]
