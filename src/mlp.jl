@@ -10,14 +10,13 @@ type NNLayer{T}
     
     # sparsity
     sparse::Bool
-    sparsecoef::T
-	sparsity::T
-	#meanact::AbstractVector{T}
+    sparsecoef::Real
+	sparsity::Real
+	#meanact::AbstractVector
 end
 
 # default with no sparsity
-NNLayer{T}(w::AbstractMatrix{T},b::AbstractVector{T},a::Function,ad::Function) =
-	NNLayer(w,b,a,ad,false,0.0,0.0,T[])
+NNLayer(w,b,a::Function,ad::Function) = NNLayer(w,b,a,ad,false,0.0,0.0)
 
 copy(l::NNLayer) = NNLayer(l.w,l.b,l.a,l.ad,l.sparse,l.sparsecoef,l.sparsity)
 
