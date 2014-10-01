@@ -3,7 +3,7 @@
 using ArrayViews
 
 type NNLayer{T}
-    w::AbstractMatrix{T}
+    w::AbstractMatrix  # TODO: fix to accept T and Filter1D{T}
     b::AbstractVector{T}
     a::Function
     ad::Function
@@ -29,7 +29,7 @@ type MLP
 end
 
 # In all operations between two NNLayers, the activations functions are taken from the first NNLayer
-applylayer(w::AbstractMatrix{T}, b::AbstractVector{T}, x::Array) = w*x .+ b
+applylayer(w::AbstractMatrix, b::AbstractVector, x::Array) = w*x .+ b
 .*(c::Number, l::NNLayer)  = begin l2=copy(l); l2.w=l.w*c;    l2.b=l.b*c;    l2 end
 .*(l::NNLayer, m::NNLayer) = begin l2=copy(l); l2.w=l.w.*m.w; l2.b=l.b.*m.b; l2 end
 *(l::NNLayer, m::NNLayer)  = begin l2=copy(l); l2.w=l.w.*m.w; l2.b=l.b.*m.b; l2 end

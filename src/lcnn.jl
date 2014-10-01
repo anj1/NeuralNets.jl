@@ -6,6 +6,13 @@
 
 # TODO: unify interface for scatter()
 
+
+# TODO: most sane way is to have:
+# type ShiftFilterBank{T} <: AbstractMatrix{T}
+# which encapsulates the idea of 'filter as a matrix'.
+# various operations on SFB and vectors would then
+# have a common 'wrap-unwrap' implementation function
+
 # this represents a linear 1D filter
 type Filter1D{T}
 	fk::Vector{Complex{T}}
@@ -37,8 +44,8 @@ typealias ShiftFilterBank{T} Matrix{Filter1D{T}}
 function *{T}(filts::ShiftFilterBank{T}, x::Vector{T})
 	N = length(filts[1].fk)
 	outv = Array(T,0)
-	for i = 1 : size(filts,2)
-		cs = [filts[i,j]*x[N*(j-1)+1:N*j] for j=1:size(filts,1)]
+	for i = 1 : size(filts,1)
+		cs = [filts[i,j]*x[N*(j-1)+1:N*j] for j=1:size(filts,2)]
 		c = reduce(.+, cs)
 		append!(outv, c)
 	end
@@ -50,10 +57,16 @@ function *(w::ShiftFilterBank, x::Matrix)
 	w*vec(x)
 end
 
-function applylayer{T}(w::ShiftFilterBank{T}, b::AbstractVector{T}, x::Array)
-	(N, r) = divrem(length(x), length(b))
+function applylayer{T}(w::ShiftFilterBank{T}, b::AbstractVector{T}, x::Matrix)
+	(N, r) = divrem(size(x,1), size(w,2))
 	r == 0 || throw(ArgumentError("Dimension mismatch"))
-	w*x .+ vec(repmat(b,int(length(x)/length(b)),1))
+	#@show size(x)
+	#@show size(vec(repmat(b,int(length(x)/length(b)),1)))
+	outl = Array(T, N*length(b), size(x,2))
+	for i = 1 : size(x,2)
+		outl[:,i] = w*x[:,i] .+ vec(repmat(b,N,1))
+	end
+	outl
 end
 
 # simulate δ*x' where x is the input and δ are the errors.
