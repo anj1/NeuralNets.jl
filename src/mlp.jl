@@ -3,7 +3,7 @@
 using ArrayViews
 
 type NNLayer{T}
-    w::AbstractMatrix  # TODO: fix to accept T and Filter1D{T}
+    w::Union(AbstractMatrix{T},ShiftFilterBank{T})
     b::AbstractVector{T}
     a::Function
     ad::Function

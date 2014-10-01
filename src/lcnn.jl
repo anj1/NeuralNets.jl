@@ -1,4 +1,5 @@
 # using ArrayViews
+import Base.*
 
 # Types and function definitions for linear shift convolutional neural nets
 # the type of CNN here is a set of 2D filters that are shifted in the
@@ -28,7 +29,9 @@ scatter{T}(f::Type{Filter1D{T}}, δ, x) = Filter1D(conj(fft(δ)).*fft(x))
 # circularly shifted along the columnar direction
 # filters are represented as a matrix, with
 # <filter i, column j> in row i, column j of the block matrix
-typealias ShiftFilterBank{T} Matrix{Filter1D{T}}
+type ShiftFilterBank{T}
+	filts::Matrix{Filter1D{T}}
+end
 
 # function *{T}(filts::Matrix{Filter1D{T}}, x::Vector{Vector{T}})
 # 	[
@@ -41,8 +44,10 @@ typealias ShiftFilterBank{T} Matrix{Filter1D{T}}
 # this is nothing but a matrix-vector multiplication;
 # applying each 'block' of <filts> to the corresponding
 # 'slice' of x
-function *{T}(filts::ShiftFilterBank{T}, x::Vector{T})
+function *{T}(w::ShiftFilterBank{T}, x::Vector{T})
+	filts = w.filts
 	N = length(filts[1].fk)
+	@show N, length(x), size(filts,2)
 	outv = Array(T,0)
 	for i = 1 : size(filts,1)
 		cs = [filts[i,j]*x[N*(j-1)+1:N*j] for j=1:size(filts,2)]
@@ -52,18 +57,21 @@ function *{T}(filts::ShiftFilterBank{T}, x::Vector{T})
 	outv
 end
 
-function *(w::ShiftFilterBank, x::Matrix)
+function *{T}(w::ShiftFilterBank{T}, x::Matrix{T})
+	filts = w.filts
 	size(x,2) == 1 || throw(ArgumentError("batch training not supported for lcnn"))
-	w*vec(x)
+	filts*vec(x)
 end
 
 function applylayer{T}(w::ShiftFilterBank{T}, b::AbstractVector{T}, x::Matrix)
-	(N, r) = divrem(size(x,1), size(w,2))
+	filts = w.filts
+	(N, r) = divrem(size(x,1), size(filts,2))
 	r == 0 || throw(ArgumentError("Dimension mismatch"))
 	#@show size(x)
 	#@show size(vec(repmat(b,int(length(x)/length(b)),1)))
 	outl = Array(T, N*length(b), size(x,2))
 	for i = 1 : size(x,2)
+		@show i
 		outl[:,i] = w*x[:,i] .+ vec(repmat(b,N,1))
 	end
 	outl
@@ -71,6 +79,8 @@ end
 
 # simulate δ*x' where x is the input and δ are the errors.
 function scatter{T}(w::ShiftFilterBank{T}, δ::Vector{T}, x::Vector{T})
+	filts = w.filts
+
 	# ncol is the number of image columns
 	(nrow, ncol) = size(w)
 
@@ -86,20 +96,7 @@ function scatter{T}(w::ShiftFilterBank{T}, δ::Vector{T}, x::Vector{T})
 			outw[i,j] = scatter(Filter1D{T}, thisδ[j], thisx)
 		end
 	end
-	outw
-end
-
-function setbias{T}(w::ShiftFilterBank{T}, δ::Vector{T})
-	# nrow is the number of filters in the filter bank
-	(nrow, ncol) = size(w)
-
-	# N is the size of each row of the image
-	# i.e. number of filters in each bank
-	(N, r) = divrem(length(δ),nrow)
-	r == 0 || throw(ArgumentError("Dimension mismatch"))
-
-	thisδ = [δ[N*(j-1)+1:N*j] for j=1:nrow]
-	map(sum, thisδ)
+	outw, map(sum, thisδ)
 end
 
 # randfilt1d() = Filter1D(fft(randn(4)))
