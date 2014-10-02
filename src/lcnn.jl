@@ -9,20 +9,28 @@ using ArrayViews
 # TODO: unify interface for scatter()
 
 
-# TODO: most sane way is to have:
-# type ShiftFilterBank{T} <: AbstractMatrix{T}
+# The most sane way is to have:
+# type ShiftFilterBank{T}
 # which encapsulates the idea of 'filter as a matrix'.
 # various operations on SFB and vectors would then
 # have a common 'wrap-unwrap' implementation function
+
+# TODO: make filter1d*vector operation faster if fft(vector) can
+# be precomputed.
+
 
 # this represents a linear 1D filter
 type Filter1D{T}
 	fk::Vector{Complex{T}}
 end
+#Filter1D(x::Vector{Real}) = Filter1D(conj(fft(x)))
 
 *(f::Filter1D, x::AbstractVector) = real(ifft(conj(f.fk) .* fft(x,1)))
-.*{T}(f::Filter1D{T}, x::T) = Filter1D(f.fk .* x)
-*{T}(f::Filter1D{T}, x::T) = Filter1D(f.fk .* x)
+.*{T}(f::Filter1D{T}, x::T) = Filter1D{T}(f.fk .* x)
+.+{T}(f::Filter1D{T}, x::T) = Filter1D{T}(f.fk .+ x)
+ *{T}(f::Filter1D{T}, x::T) = Filter1D{T}(f.fk .* x)
+-{T}(f::Filter1D{T}, g::Filter1D{T}) = Filter1D{T}(f.fk - g.fk)
++{T}(f::Filter1D{T}, g::Filter1D{T}) = Filter1D{T}(f.fk + g.fk)
 ctranspose(f::Filter1D) = Filter1D(conj(f.fk))
 
 # simulate δ*x' where x is the input and δ are the errors.
@@ -36,8 +44,11 @@ type ShiftFilterBank{T}
 	filts::Matrix{Filter1D{T}}
 end
 ctranspose(w::ShiftFilterBank) = ShiftFilterBank(w.filts')
-.*{T}(w::ShiftFilterBank{T}, x::T) = ShiftFilterBank(w.filts.*x)
-*{T}(w::ShiftFilterBank{T}, x::T) = begin; @show @which w.filts .* x; ShiftFilterBank(w.filts.*x); end
+.*{T}(w::ShiftFilterBank{T}, x::T) = ShiftFilterBank(convert(Array{Filter1D{T}}, w.filts.*x))
+*{T}(w::ShiftFilterBank{T},  x::T) = ShiftFilterBank(convert(Array{Filter1D{T}}, w.filts.*x))
+.+{T}(w::ShiftFilterBank{T}, x::T) = ShiftFilterBank(convert(Array{Filter1D{T}}, w.filts.+x))
+ +{T}(w::ShiftFilterBank{T}, v::ShiftFilterBank{T}) = ShiftFilterBank(w.filts  + v.filts)
+.-{T}(w::ShiftFilterBank{T}, v::ShiftFilterBank{T}) = ShiftFilterBank(w.filts .- v.filts)
 
 # given a vector, chop it up into a set of views
 # with each view of length N
@@ -78,8 +89,7 @@ function applylayer{T}(w::ShiftFilterBank{T}, b::AbstractVector{T}, x::Matrix)
 	filts = w.filts
 	(N, r) = divrem(size(x,1), size(filts,2))
 	r == 0 || throw(ArgumentError("Dimension mismatch"))
-	#@show size(x)
-	#@show size(vec(repmat(b,int(length(x)/length(b)),1)))
+
 	outl = Array(T, N*length(b), size(x,2))
 	for i = 1 : size(x,2)
 		@show i
@@ -98,7 +108,7 @@ function scatter{T}(w::ShiftFilterBank{T}, δ::Array{T}, x::Array{T})
 	chopδ = choparray(δ, N)
 	chopx = choparray(x, N)
 
-	outw = [scatter(Filter1D{T}, thisδ, thisx) for thisx in chopx, thisδ in chopδ]
+	outw = [scatter(Filter1D{T}, thisδ, thisx) for thisδ in chopδ, thisx in chopx]
 	ShiftFilterBank(outw), map(sum, chopδ)
 end
 
