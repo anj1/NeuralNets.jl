@@ -47,6 +47,8 @@ function backprop!{T}(net::Vector{T}, stor::Vector{T}, x, t, inplace)
 		end
 
 		# calculate weight and bias gradients
+		@show size(δ)
+		@show size(x)
 		(∇w,∇b) = scatter(l.w,δ,x)
 		if inplace
 			stor[1].w[:] = vec(∇w)

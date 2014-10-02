@@ -1,5 +1,6 @@
 # using ArrayViews
-import Base.*
+import Base:ctranspose,*
+using ArrayViews
 
 # Types and function definitions for linear shift convolutional neural nets
 # the type of CNN here is a set of 2D filters that are shifted in the
@@ -19,11 +20,13 @@ type Filter1D{T}
 	fk::Vector{Complex{T}}
 end
 
-*(f::Filter1D, x::Vector) = real(ifft(conj(f.fk) .* fft(x,1)))
+*(f::Filter1D, x::AbstractVector) = real(ifft(conj(f.fk) .* fft(x,1)))
+.*{T}(f::Filter1D{T}, x::T) = Filter1D(f.fk .* x)
+*{T}(f::Filter1D{T}, x::T) = Filter1D(f.fk .* x)
 ctranspose(f::Filter1D) = Filter1D(conj(f.fk))
 
 # simulate δ*x' where x is the input and δ are the errors.
-scatter{T}(f::Type{Filter1D{T}}, δ, x) = Filter1D(conj(fft(δ)).*fft(x))
+scatter{T}(::Type{Filter1D{T}}, δ, x) = Filter1D(conj(fft(δ)).*fft(x))
 
 # this represents a set of filters that can be
 # circularly shifted along the columnar direction
@@ -32,35 +35,43 @@ scatter{T}(f::Type{Filter1D{T}}, δ, x) = Filter1D(conj(fft(δ)).*fft(x))
 type ShiftFilterBank{T}
 	filts::Matrix{Filter1D{T}}
 end
+ctranspose(w::ShiftFilterBank) = ShiftFilterBank(w.filts')
+.*{T}(w::ShiftFilterBank{T}, x::T) = ShiftFilterBank(w.filts.*x)
+*{T}(w::ShiftFilterBank{T}, x::T) = begin; @show @which w.filts .* x; ShiftFilterBank(w.filts.*x); end
 
-# function *{T}(filts::Matrix{Filter1D{T}}, x::Vector{Vector{T}})
-# 	[
-# 		reduce(.+, [filts[i,j]*x[j] for j=1:size(filts,1)])
-# 		for i = 1:size(filts,2)
-# 	]
-# end
+# given a vector, chop it up into a set of views
+# with each view of length N
+choparray(x, N) = [view(x, (1:N)+i) for i = 0:N:length(x)-1]
 
-# apply a filter bank to a vectorized image
+# given an array of vectors, concatenate them into a single vector
+# TODO: could this be faster?
+catarray(x) = cat(1,x...)
+
 # this is nothing but a matrix-vector multiplication;
 # applying each 'block' of <filts> to the corresponding
 # 'slice' of x
+function *{T}(filts::Matrix{Filter1D{T}}, x::Vector{AbstractVector{T}})
+	[
+		reduce(.+, [filts[i,j]*x[j] for j=1:size(filts,2)])
+		for i = 1:size(filts,1)
+	]
+end
+
+# apply a filter bank to a vectorized image
+# this first 'lowers' w and x to a common representation
+# as abstract matrices and vectors, then raises the result
 function *{T}(w::ShiftFilterBank{T}, x::Vector{T})
-	filts = w.filts
-	N = length(filts[1].fk)
-	@show N, length(x), size(filts,2)
-	outv = Array(T,0)
-	for i = 1 : size(filts,1)
-		cs = [filts[i,j]*x[N*(j-1)+1:N*j] for j=1:size(filts,2)]
-		c = reduce(.+, cs)
-		append!(outv, c)
-	end
-	outv
+	N = length(w.filts[1].fk)
+	xv = choparray(x, N)
+	xv::Vector{AbstractVector{T}}
+	w.filts::Matrix{Filter1D{T}}
+	outv = (w.filts * xv)
+	catarray(outv)
 end
 
 function *{T}(w::ShiftFilterBank{T}, x::Matrix{T})
-	filts = w.filts
 	size(x,2) == 1 || throw(ArgumentError("batch training not supported for lcnn"))
-	filts*vec(x)
+	w*vec(x)
 end
 
 function applylayer{T}(w::ShiftFilterBank{T}, b::AbstractVector{T}, x::Matrix)
@@ -78,25 +89,17 @@ function applylayer{T}(w::ShiftFilterBank{T}, b::AbstractVector{T}, x::Matrix)
 end
 
 # simulate δ*x' where x is the input and δ are the errors.
-function scatter{T}(w::ShiftFilterBank{T}, δ::Vector{T}, x::Vector{T})
-	filts = w.filts
+function scatter{T}(w::ShiftFilterBank{T}, δ::Array{T}, x::Array{T})
+	size(δ, 2) == 1 || throw(DomainError("batch δ not supported"))
+	size(x, 2) == 1 || throw(DomainError("batch x not supported"))
 
-	# ncol is the number of image columns
-	(nrow, ncol) = size(w)
+	N = length(w.filts[1].fk)
+	
+	chopδ = choparray(δ, N)
+	chopx = choparray(x, N)
 
-	# N is the length of each column
-	(N, r) = divrem(length(x),ncol)
-	r == 0 || throw(ArgumentError("Dimension mismatch"))
-
-	thisδ = [δ[N*(j-1)+1:N*j] for j=1:nrow]
-	outw = Array(ShiftFilterBank{T},nrow,ncol)
-	for i = 1 : ncol
-		thisx = x[N*(i-1)+1:N*i]
-		for j = 1 : nrow
-			outw[i,j] = scatter(Filter1D{T}, thisδ[j], thisx)
-		end
-	end
-	outw, map(sum, thisδ)
+	outw = [scatter(Filter1D{T}, thisδ, thisx) for thisx in chopx, thisδ in chopδ]
+	ShiftFilterBank(outw), map(sum, chopδ)
 end
 
 # randfilt1d() = Filter1D(fft(randn(4)))
