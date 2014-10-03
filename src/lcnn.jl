@@ -46,7 +46,6 @@ end
 ctranspose(w::ShiftFilterBank) = ShiftFilterBank(w.filts')
 .*{T}(w::ShiftFilterBank{T}, x::T) = ShiftFilterBank(convert(Array{Filter1D{T}}, w.filts.*x))
  *{T}(w::ShiftFilterBank{T}, x::T) = ShiftFilterBank(convert(Array{Filter1D{T}}, w.filts.*x))
- *{T}(x::T, w::ShiftFilterBank{T}) = ShiftFilterBank(convert(Array{Filter1D{T}}, w.filts.*x))
 .+{T}(w::ShiftFilterBank{T}, x::T) = ShiftFilterBank(convert(Array{Filter1D{T}}, w.filts.+x))
  +{T}(w::ShiftFilterBank{T}, v::ShiftFilterBank{T}) = ShiftFilterBank(w.filts  + v.filts)
 .-{T}(w::ShiftFilterBank{T}, v::ShiftFilterBank{T}) = ShiftFilterBank(w.filts .- v.filts)
