@@ -18,24 +18,33 @@ using ArrayViews
 # TODO: make filter1d*vector operation faster if fft(vector) can
 # be precomputed.
 
-
+# -------------------------------------------------------------------
 # this represents a linear 1D filter
 type Filter1D{T}
 	fk::Vector{Complex{T}}
 end
 #Filter1D(x::Vector{Real}) = Filter1D(conj(fft(x)))
 
-*(f::Filter1D, x::AbstractVector) = real(ifft(conj(f.fk) .* fft(x,1)))
-.*{T}(f::Filter1D{T}, x::T) = Filter1D{T}(f.fk .* x)
-.+{T}(f::Filter1D{T}, x::T) = Filter1D{T}(f.fk .+ x)
- *{T}(f::Filter1D{T}, x::T) = Filter1D{T}(f.fk .* x)
--{T}(f::Filter1D{T}, g::Filter1D{T}) = Filter1D{T}(f.fk - g.fk)
-+{T}(f::Filter1D{T}, g::Filter1D{T}) = Filter1D{T}(f.fk + g.fk)
+# apply filter to real vector and get real result
+*(f::Filter1D, x::AbstractVector{Real}) = real(ifft(conj(f.fk) .* fft(x,1)))
+
+# this is like *, but it's for when fft(x) is known
+fastapply{T}(f::Filter1D{T}, xf::AbstractVector{Complex{T}}) = real(ifft(conj(f.fk) .* xf))
+
 ctranspose(f::Filter1D) = Filter1D(conj(f.fk))
 
 # simulate δ*x' where x is the input and δ are the errors.
 scatter{T}(::Type{Filter1D{T}}, δ, x) = Filter1D(conj(fft(δ)).*fft(x))
 
+# -------------------------------------------------------------------
+# numerical manipulation of filters
+.*{T}(f::Filter1D{T}, x::T) = Filter1D{T}(f.fk .* x)
+.+{T}(f::Filter1D{T}, x::T) = Filter1D{T}(f.fk .+ x)
+ *{T}(f::Filter1D{T}, x::T) = Filter1D{T}(f.fk .* x)
+-{T}(f::Filter1D{T}, g::Filter1D{T}) = Filter1D{T}(f.fk - g.fk)
++{T}(f::Filter1D{T}, g::Filter1D{T}) = Filter1D{T}(f.fk + g.fk)
+
+# -------------------------------------------------------------------
 # this represents a set of filters that can be
 # circularly shifted along the columnar direction
 # filters are represented as a matrix, with
@@ -62,8 +71,10 @@ catarray(x) = cat(1,x...)
 # applying each 'block' of <filts> to the corresponding
 # 'slice' of x
 function *{T}(filts::Matrix{Filter1D{T}}, x::Vector{AbstractVector{T}})
+	xf = [fft(xi) for xi in x]
 	[
-		reduce(.+, [filts[i,j]*x[j] for j=1:size(filts,2)])
+		#reduce(.+, [filts[i,j]*xf[j] for j=1:size(filts,2)])
+		reduce(.+, [fastapply(filts[i,j],xf[j]) for j=1:size(filts,2)])
 		for i = 1:size(filts,1)
 	]
 end
