@@ -2,6 +2,8 @@
 
 using ArrayViews
 
+abstract NeuralNetwork
+
 type NNLayer{T}
     w::AbstractMatrix{T}
     b::AbstractVector{T}
@@ -20,12 +22,21 @@ NNLayer{T}(w::AbstractMatrix{T},b::AbstractVector{T},a::Function,ad::Function) =
 
 copy(l::NNLayer) = NNLayer(l.w,l.b,l.a,l.ad,l.sparse,l.sparsecoef,l.sparsity)
 
-type MLP
+type MLP <: NeuralNetwork
     net::Vector{NNLayer}
     dims::Vector{(Int,Int)}  # topology of net
     buf::AbstractVector      # in-place data store
     offs::Vector{Int}    # indices into in-place store
     trained::Bool
+end
+
+# placeholder types
+type DBN <: NeuralNetwork
+    stuff
+end
+
+type CNN <: NeuralNetwork
+    stuff
 end
 
 # In all operations between two NNLayers, the activations functions are taken from the first NNLayer
