@@ -103,7 +103,7 @@ function applylayer{T}(w::ShiftFilterBank{T}, b::AbstractVector{T}, x::Matrix)
 
 	outl = Array(T, N*length(b), size(x,2))
 	for i = 1 : size(x,2)
-		outl[:,i] = w*x[:,i] .+ vec(repmat(b,N,1))
+		outl[:,i] = w*x[:,i] .+ vec(repeat(b,inner=[N,1]))
 	end
 	outl
 end
