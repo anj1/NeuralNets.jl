@@ -41,13 +41,11 @@ act   = [logis,  ident]
 # not working 100%, it's a difficult set to get to converge in a sensible time period
 
 mlp = MLP(rand, layer_sizes, act)
-params = TrainingParams(100, 1e-5, 2e-6, .7, :levenberg_marquardt)
-
 O = prop(mlp,X)
 @show mean((O .- T).^2)
 
 println("Training...")
-mlp = train(mlp, params, X, T, verbose=false)
+mlp = train(mlp, X, [], T, [], maxiter=100, tol=1e-5, train_method=:levenberg_marquardt, verbose=false)
 
 O = prop(mlp,X)
 @show mean((O .- T).^2)
