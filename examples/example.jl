@@ -21,8 +21,8 @@ mlp = MLP(randn, layer_sizes, act)
 mlp1 = train(mlp, x, [], t, [], train_method=:levenberg_marquardt)
 @show prop(mlp1, x)
 
-mlp2 = gdmtrain(mlp, x, t)
+mlp2, losses = gdmtrain(mlp, x, t, show_trace=true)
 @show prop(mlp2, x)
 
-mlp3 = adatrain(mlp, x, t)
+mlp3, losses = adatrain(mlp, x, t, show_trace=true)
 @show prop(mlp3, x)

@@ -9,6 +9,16 @@ function batch(b::Int,x::Array,t::Array)
     return x[:,index],t[:,index]
 end
 
+# store/show trace of loss for diagnostic purposes
+function diagnostic!(e_list, e_old, e_new, n, i, store_trace, show_trace)
+    if store_trace
+        push!(e_list, e_new)
+    end
+    if show_trace
+        println("i: $i\tLoss=$(round(e_new,6))\tΔLoss=$(round((e_new - e_old),6))\tAvg. Loss=$(round((e_new/n),6))")
+    end
+end
+
 # Train a MLP using gradient decent with momentum.
 # mlp.net:  array of neural network layers
 # x:        input data
@@ -27,13 +37,15 @@ function gdmtrain(mlp::MLP,
                   learning_rate=.3,
                   momentum_rate=.6,             
                   eval::Int=10,
-                  verbose::Bool=true)
+                  store_trace::Bool=false,
+                  show_trace::Bool=false)
     n = size(x,2)
     η, c, m, b = learning_rate, tol, momentum_rate, batch_size
     i = e_old = Δw_old = 0
     e_new = loss(prop(mlp.net,x),t)
     converged::Bool = false
 
+    e_list = []
     while (!converged && i < maxiter)
         i += 1
         x_batch,t_batch = batch(b,x,t)
@@ -46,17 +58,15 @@ function gdmtrain(mlp::MLP,
             e_old = e_new
             e_new = loss(prop(mlp.net,x),t)
             converged = abs(e_new - e_old) < c # check if converged
+            diagnostic!(e_list, e_old, e_new, n, i, store_trace, show_trace)
         end
-        if verbose && i % 100 == 0
-            println("i: $i\tLoss=$(round(e_new,6))\tΔLoss=$(round((e_new - e_old),6))\tAvg. Loss=$(round((e_new/n),6))")
-        end        
     end
     convgstr = converged ? "converged" : "didn't converge"
     println("Training $convgstr in less than $i iterations; average error: $(round((e_new/n),4)).")
     println("* learning rate η = $η")
     println("* momentum coefficient m = $m")
     println("* convergence criterion c = $c")
-    return mlp
+    return mlp, e_list
 end
 
 # Train a MLP using Adagrad
@@ -77,13 +87,15 @@ function adatrain(mlp::MLP,
                   learning_rate=.3,
                   lambda=1e-6,
                   eval::Int=10,
-                  verbose::Bool=true)
+                  store_trace::Bool=false,
+                  show_trace::Bool=false)
 
     η, c, λ, b = learning_rate, tol, lambda, batch_size
     i = e_old = Δnet = sumgrad = 0
     e_new = loss(prop(mlp.net,x),t)
     n = size(x,2)
     converged::Bool = false
+    e_list = []
     while (!converged && i < maxiter)
         i += 1
         x_batch,t_batch = batch(b,x,t)
@@ -96,14 +108,12 @@ function adatrain(mlp::MLP,
             e_old = e_new
             e_new = loss(prop(mlp.net,x),t)
             converged = abs(e_new - e_old) < c # check if converged
-        end
-        if verbose && i % 100 == 0
-            println("i: $i\tLoss=$(round(e_new,6))\tΔLoss=$(round((e_new - e_old),6))\tAvg. Loss=$(round((e_new/n),6))")
+            diagnostic!(e_list, e_old, e_new, n, i, store_trace, show_trace)
         end
     end
     convgstr = converged ? "converged" : "didn't converge"
     println("Training $convgstr in less than $i iterations; average error: $(round((e_new/n),4)).")
     println("* learning rate η = $η")
     println("* convergence criterion c = $c")
-    return mlp
+    return mlp, e_list
 end

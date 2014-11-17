@@ -7,7 +7,8 @@ function lmtrain(mlp::MLP,
                  learning_rate=.3,
                  momentum_rate=.6,
                  eval::Int=10,
-                 verbose::Bool=true)
+                 store_trace::Bool=false,
+                 show_trace::Bool=false)
 
     minλ = 1e16     # default values curtesy of Optim.jl
     maxλ = 1e-16
