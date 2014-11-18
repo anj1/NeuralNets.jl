@@ -16,19 +16,24 @@ function gdmtrain(mlp::MLP,
                   learning_rate=.3,
                   momentum_rate=.6,
                   eval::Int=10,
+                  show_trace::Bool=true,
                   store_trace::Bool=false,
-                  show_trace::Bool=false)
+                  in_place::Bool=true)
+    valid::Bool = false
 
-    # report = TrainReport("Stochastic Gradient Descent",train_parameters) not operational yet
-    # display_training_header!(mlp,report) not operational yet
+    η, c, m, b = learning_rate, tol, momentum_rate, batch_size
+    i = e_old = e_valid = Δw_old = 0
+    e_train = loss(prop(mlp,x),t)
+    converged::Bool = false
+    params = Dict(["Batch size"=>batch_size,
+                   "Max iterations"=>maxiter,
+                   "Learning rate"=>learning_rate])
+    report = TrainReport("Stochastic Gradient Descent",params)
+    display_training_header!(mlp, report)
+    diagnostic_trace!(
+        report, i, e_train, e_valid, valid, show_trace, in_place, converged)
 
     n = size(x,2)
-    η, c, m, b = learning_rate, tol, momentum_rate, batch_size
-    i = e_old = Δw_old = 0
-    e_new = loss(prop(mlp.net,x),t)
-    converged::Bool = false
-
-    e_list = []
     while (!converged && i < maxiter)
         i += 1
         x_batch,t_batch = batch(b,x,t)
@@ -38,24 +43,17 @@ function gdmtrain(mlp::MLP,
         Δw_old = Δw_new
 
         if i % eval == 0  # recalculate loss every eval number iterations
-            e_old = e_new
-            e_new = loss(prop(mlp.net,x),t)
-            converged = abs(e_new - e_old) < c # check if converged
-
-            # new interface for displaying progress
-            push!(report, e_new, e_new)
-            display_status!(report)
-
-            diagnostic!(e_list, e_old, e_new, n, i, store_trace, show_trace)
+            e_old = e_train
+            e_train = loss(prop(mlp,x),t)
+            valid && (e_valid = loss(prop(mlp,x),t))
+            converged = abs(e_train - e_old) < c # check if converged
+            diagnostic_trace!(
+                report, i, e_train, e_valid, valid, show_trace, in_place, converged)
         end
     end
 
-    convgstr = converged ? "converged" : "didn't converge"
-    println("Training $convgstr in less than $i iterations; average error: $(round((e_new/n),4)).")
-    println("* learning rate η = $η")
-    println("* momentum coefficient m = $m")
-    println("* convergence criterion c = $c")
-    return mlp, e_list
+    display_training_footer!(report,in_place)
+    store_trace ? (return mlp,report) : (return mlp)
 end
 
 # Train a MLP using Adagrad
@@ -97,7 +95,8 @@ function adatrain(mlp::MLP,
             e_old = e_new
             e_new = loss(prop(mlp.net,x),t)
             converged = abs(e_new - e_old) < c # check if converged
-            diagnostic!(e_list, e_old, e_new, n, i, store_trace, show_trace)
+            diagnostic!(
+                e_list, e_old, e_new, n, i, store_trace, show_trace,converged)
         end
     end
     convgstr = converged ? "converged" : "didn't converge"
