@@ -1,4 +1,4 @@
-# Train a MLP using gradient decent with momentum.
+# Train a MultiLayerPerceptron using gradient decent with momentum.
 # mlp.net:  array of neural network layers
 # x:        input data
 # t:        target data
@@ -7,7 +7,7 @@
 # c:        convergence criterion
 # eval:     how often we evaluate the loss function
 # verbose:  train with printed feedback about the error function
-function gdmtrain(mlp::MLP,
+function gdmtrain(mlp::MultiLayerPerceptron,
                   x,
                   t;
                   batch_size=size(x,2),
@@ -56,7 +56,7 @@ function gdmtrain(mlp::MLP,
     store_trace ? (return mlp,report) : (return mlp)
 end
 
-# Train a MLP using Adagrad
+# Train a MultiLayerPerceptron using Adagrad
 # mlp.net:  array of neural network layers
 # x:        input data
 # t:        target data
@@ -65,7 +65,7 @@ end
 # ε:        small constant for numerical stability
 # eval:     how often we evaluate the loss function
 # verbose:  train with printed feedback about the error function
-function adatrain(mlp::MLP,
+function adatrain(mlp::MultiLayerPerceptron,
                   x,
                   t;
                   batch_size=size(x,2),

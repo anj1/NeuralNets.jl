@@ -12,7 +12,7 @@ export train, gdmtrain, adatrain, prop
 export logis, logisd, logissafe, logissafed, relu, relud, ident, identd, tanhd
 
 # types
-export MLP, NNLayer
+export MultiLayerPerceptron, NNLayer
 
 # multi-layer perceptrons
 include("activations.jl")

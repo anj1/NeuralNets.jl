@@ -22,7 +22,7 @@ NNLayer{T}(w::AbstractMatrix{T},b::AbstractVector{T},a::Function,ad::Function) =
 
 copy(l::NNLayer) = NNLayer(l.w,l.b,l.a,l.ad,l.sparse,l.sparsecoef,l.sparsity)
 
-type MLP
+type MultiLayerPerceptron
     net::Vector{NNLayer}
     dims::Vector{(Int,Int)}  # topology of net
     buf::AbstractVector      # in-place data store
@@ -74,7 +74,7 @@ function calc_offsets(::Type{NNLayer}, dims)
 	offs
 end
 
-function MLP(genf::Function, layer_sizes::Vector{Int}, act::Vector{Function})
+function MultiLayerPerceptron(genf::Function, layer_sizes::Vector{Int}, act::Vector{Function})
 	# some initializations
 	nlayers = length(layer_sizes) - 1
 	dims = [(layer_sizes[i+1],layer_sizes[i]) for i in 1:nlayers]
@@ -94,23 +94,23 @@ function MLP(genf::Function, layer_sizes::Vector{Int}, act::Vector{Function})
 
 	net = [NNLayer(Array(eltype(buf),0,0),Array(eltype(buf),0),act[i],actd[i]) for i=1:nlayers]
 
-	mlp = MLP(net, dims, buf, offs, false)
+	mlp = MultiLayerPerceptron(net, dims, buf, offs, false)
 	unflatten_net!(mlp, buf)
 
 	mlp
 end
 
-# generate an MLP autoencoder from existing layer
-function autenc(::Type{MLP}, l::NNLayer, act, actd)
+# generate an MultiLayerPerceptron autoencoder from existing layer
+function autenc(::Type{MultiLayerPerceptron}, l::NNLayer, act, actd)
 	dims = [size(l.w), size(l.w')]
 	net = [l, NNLayer(l.w', zeros(size(l.w,2)), act, actd)]
-	mlp = MLP(net, dims, [], [], false)
+	mlp = MultiLayerPerceptron(net, dims, [], [], false)
 end
 
 # Given a flattened vector (buf), update the neural
 # net so that each weight and bias vector points into the
 # offsets provided by offs
-function unflatten_net!(mlp::MLP, buf::AbstractVector)
+function unflatten_net!(mlp::MultiLayerPerceptron, buf::AbstractVector)
 	mlp.buf = buf
 
 	for i = 1 : length(mlp.net)

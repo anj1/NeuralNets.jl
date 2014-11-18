@@ -15,8 +15,7 @@ layer_sizes = [2, 3, 3, 1]
 act   = [relu,  relu,  logis]
 
 # initialize net
-mlp = MLP(randn, layer_sizes, act)
+mlp = MultiLayerPerceptron(randn, layer_sizes, act)
 
-mlp2 = gdmtrain(mlp, x, t)
-@show prop(mlp,x)
-
+mlp2,hist = gdmtrain(mlp, x, t; store_trace=true)
+prop(mlp,x)

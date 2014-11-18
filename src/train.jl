@@ -11,6 +11,27 @@ type TrainReport
     end
 end
 
+# store/show trace of loss for diagnostic purposes
+function diagnostic_trace!(h::TrainReport,
+                           i::Int,
+                           train_error::Real,
+                           valid_error::Real,
+                           valid::Bool,
+                           show_trace::Bool,
+                           in_place::Bool,
+                           converged::Bool)
+    converged && (h.trained = converged)
+    if valid # if a validation set is present
+        push!(h.iteration, i)
+        push!(h.train_error, train_error)
+        push!(h.valid_error, valid_error)
+    else
+        push!(h.iteration, i)
+        push!(h.train_error, train_error)
+    end
+    show_trace && display_status!(h; in_place=in_place)
+end
+
 function Base.show(io::IO, h::TrainReport)
     println(h.algorithm)
     for p in h.train_parameters
@@ -36,7 +57,7 @@ function Base.show(io::IO, h::TrainReport)
 end
 
 # basically just echo back to the user what dumbass settings they’ve picked
-function display_training_header!(nnet::MLP, h::TrainReport)
+function display_training_header!(nnet::MultiLayerPerceptron, h::TrainReport)
     info("now training with the following parameters")
     for p in h.train_parameters
         print_with_color(:blue,"$(p[1]): $(p[2])\n")
@@ -44,28 +65,6 @@ function display_training_header!(nnet::MLP, h::TrainReport)
     @printf "-------------------------------------------\n"
 end
 
-# store and show trace of loss for diagnostic purposes
-function diagnostic_trace!(h::TrainReport,
-                           i::Int,
-                           train_error::Real,
-                           valid_error::Real,
-                           valid::Bool,
-                           show_trace::Bool,
-                           in_place::Bool,
-                           converged::Bool)
-    converged && (h.trained = converged)
-    if valid # if a validation set is present
-        push!(h.iteration, i)
-        push!(h.train_error, train_error)
-        push!(h.valid_error, valid_error)
-    else
-        push!(h.iteration, i)
-        push!(h.train_error, train_error)
-    end
-    show_trace && display_status!(h; in_place=in_place)
-end
-
-# let the dumbass user know how their stupid settings fare
 function display_training_footer!(h::TrainReport, in_place::Bool)
     in_place && print("\n")
     i = h.iteration[end]

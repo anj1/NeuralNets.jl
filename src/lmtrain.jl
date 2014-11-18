@@ -1,5 +1,5 @@
-# Train a MLP using Levenberg-Marquardt optimisation.
-function lmtrain(mlp::MLP,
+# Train a MultiLayerPerceptron using Levenberg-Marquardt optimisation.
+function lmtrain(mlp::MultiLayerPerceptron,
                  x,
                  t;
                  iterations::Int=1000,
@@ -41,10 +41,10 @@ function lmtrain(mlp::MLP,
 
         J = g(x) # calculate hessian
         H = J'*J # linear hessian approximation
-        
+
         Δw = sum(inv(H + λ*diagm(diag(H)))*J,3) # axis 3 will be for each data point
 
-        # need some code in here to make Δw of type Array{NNLayer} 
+        # need some code in here to make Δw of type Array{NNLayer}
 
         w_temp = mlp.net - Δw       # tentatively update weights
         e_new=loss(prop(w_temp,x),t)
@@ -64,6 +64,6 @@ function lmtrain(mlp::MLP,
         end
     end
     convgstr = converged ? "converged" : "didn't converge"
-    println("Training $convgstr in less than $i iterations; average error: $(round((e_new/n),4)).")    
+    println("Training $convgstr in less than $i iterations; average error: $(round((e_new/n),4)).")
     return mlp,converged
 end

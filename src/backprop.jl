@@ -6,7 +6,7 @@ function prop(net, x)
 	end
 end
 
-prop(mlp::MLP,x) = prop(mlp.net,x)
+prop(mlp::MultiLayerPerceptron,x) = prop(mlp.net,x)
 
 # add some 'missing' functionality to ArrayViews
 function setindex!{T}(dst::ContiguousView, src::Array{T}, idx::UnitRange)

@@ -14,7 +14,7 @@ function Base.isnan(net::Array{NNLayer})
     end
     return nans > 0
 end
-Base.isnan(mlp::MLP) = isnan(mlp.net)
+Base.isnan(mlp::MultiLayerPerceptron) = isnan(mlp.net)
 
 # batch
 # function to retrieve a random subset of data
