@@ -69,8 +69,6 @@ function display_status!(h::TrainReport; inplace=true)
             train_string = @sprintf "%14e" h.train_error[end]
             print("   train error: ")
             print_with_color(train_color, train_string)
-
-            inplace ? print("\r") : print("\n")
         end
     else
         if length(h.iteration) == 1
@@ -88,10 +86,9 @@ function display_status!(h::TrainReport; inplace=true)
             valid_string = @sprintf "%14e" h.valid_error[end]
             print("   valid. error: ")
             print_with_color(valid_color, valid_string)
-
-            inplace ? print("\r") : print("\n")
         end
     end
+    inplace ? print("\r") : print("\n")
 end
 
 push!(h::TrainReport,train_error::Real,valid_error::Real) = push!(h.history,h.train_error,h.valid_error)
