@@ -1,137 +1,109 @@
-using Optim
-import Optim.levenberg_marquardt
-using ArrayViews
+type TrainReport
+    algorithm::String
+    train_parameters::Dict
+    iteration::Vector{Int}
+    train_error::Vector{Real}
+    valid_error::Vector{Real}
+    trained::Bool
 
-loss(y, t) = 0.5 * norm(y .- t).^2
-
-# possibly useful functions to diagnose convergence problems
-# possibly to suggest learning rates with a while loop checking
-# if the first step produces a NaN in any of the weights
-function Base.isnan(net::Array{NNLayer})
-    nans = 0
-    for l in net
-        nans += sum(isnan(l.w)) + sum(isnan(l.b))
+    function TrainReport(algorithm::String,train_parameters::Dict)
+        new(algorithm,train_parameters,Int[],Real[],Real[],false)
     end
-    return nans > 0
-end
-Base.isnan(mlp::MLP) = isnan(mlp.net)
-
-# batch
-# function to retrieve a random subset of data
-# currently quite ugly, if anyone knows how to do this better go ahead
-function batch(b::Int,x::Array,t::Array)
-    n = size(x,2)
-    b == n && return x,t
-    b > n && throw("Error: Batch size larger than the number of data points supplied.")
-    index = shuffle([i for i in 1:n])
-    index = index[1:b] 
-    return x[:,index],t[:,index]
 end
 
-function train{T}(nn_in::T,
-	              trainx,
-	              valx,
-	              traint,
-	              valt;
-	              maxiter::Int=100,
-	              tol::Real=1e-5,
-                  verbose::Bool=true,
-	              train_method=:gradient_descent,
-	              ep_iter::Int=5)
-
-	# todo: make unflatten_net a macro
-
-	# train neural net using specified training algorithm.
-	# Levenberg-marquardt must be treated as a special case
-	# due to the fact that it needs the jacobian.
-
-	# todo: make this thread-safe
-	nn  = deepcopy(nn_in)
-	nng = deepcopy(nn)
-
-	function f(nd)
-		unflatten_net!(nn, vec(nd))
-		prop(nn.net, trainx).-traint
-	end
-
-	converged=false
-	numiter=0
-	gradnorm=Float64[]
-	lastval=Inf
-	r = []
-	if train_method == :levenberg_marquardt
-		out_dim = size(traint,1)
-		ln = nn.offs[end]
-		n = size(trainx,2)
-		jacobian = Array(Float64, ln, n, out_dim)
-		function g(nd)
-			unflatten_net!(nn, vec(nd))
-			for i = 1 : n
-				for j = 1 : out_dim
-					jacobcol = view(jacobian, :, i, j)
-					unflatten_net!(nng, jacobcol)
-					t = fill(NaN, (out_dim,))
-					t[j]=0.0
-					backprop!(nn.net, nng.net, trainx[:,i], t)
-				end
-			end
-			reshape(jacobian, ln, n*out_dim)'
-		end
-
-		while numiter <= maxiter
-			r = levenberg_marquardt(nd -> vec(f(nd)), g, nn.buf, tolX=tol, maxIter=ep_iter)
-
-			numiter += ep_iter
-
-			lastval, vc = convg_check(r, nn, valx, valt, lastval)
-			if vc || r.x_converged; break; end
-		end
-	else
-		function g!(nd, ndg)
-			unflatten_net!(nn, nd)
-			unflatten_net!(nng, ndg)
-			backprop!(nn.net, nng.net, trainx,  traint)
-		end
-
-		while numiter <= maxiter
-			r = optimize(nd -> 0.5*norm(f(nd)).^2, g!, nn.buf, method=train_method, grtol=tol, iterations=ep_iter)
-
-			#gradnorm = proc_results(r, gradnorm, verbose, ep_iter)
-			numiter += ep_iter
-
-			lastval, vc = convg_check(r, nn, valx, valt, lastval)
-			if vc || r.x_converged; break; end
-		end
-	end
-
-	unflatten_net!(nn, r.minimum)
-	nn
+# store/show trace of loss for diagnostic purposes
+function diagnostic_trace!(h::TrainReport,
+                           i::Int,
+                           train_error::Real,
+                           valid_error::Real,
+                           valid::Bool,
+                           show_trace::Bool,
+                           in_place::Bool,
+                           converged::Bool)
+    converged && (h.trained = converged)
+    if valid # if a validation set is present
+        push!(h.iteration, i)
+        push!(h.train_error, train_error)
+        push!(h.valid_error, valid_error)
+    else
+        push!(h.iteration, i)
+        push!(h.train_error, train_error)
+    end
+    show_trace && display_status!(h; in_place=in_place)
 end
 
-# train without validation data
-function train{T}(nn_in::T,
-	              trainx,
-	              traint;
-	              maxiter::Int=1000,
-	              tol::Real=1e-5,
-                verbose::Bool=true,
-	              train_method=:gradient_descent,
-	              ep_iter::Int=5)
-	train(nn_in::T, trainx, traint; maxiter=maxiter, tol=tol, verbose=verbose, train_method=train_method, ep_iter=ep_iter)
+function Base.show(io::IO, h::TrainReport)
+    println(h.algorithm)
+    for p in h.train_parameters
+        println("$(p[1]): ", p[2])
+    end
+    if length(h.iteration) > 0
+        if length(h.valid_error) < length(h.train_error) # if there's no validation set
+            @printf "Iteration      Train error\n"
+            @printf "---------   --------------\n"
+            for i = 1:length(h.iteration)
+                @printf "%9i   %14e\n" h.iteration[i] h.train_error[i]
+            end
+            @printf "--------------------------\n"
+        else
+            @printf "Iteration      Train error     Valid. error\n"
+            @printf "---------   --------------   --------------\n"
+            for i = 1:length(h.iteration)
+                @printf "%9i   %14e   %14e\n" h.iteration[i] h.train_error[i] h.valid_error[i]
+            end
+            @printf "-------------------------------------------\n"
+        end
+    end
 end
 
-function proc_results(r, gradnorm, verbose, ep_iter)
-	if verbose; println(r.trace[ep_iter]); end
-	gradnorm = cat(1, gradnorm, [r.trace[i].gradnorm for i = 1 : ep_iter])
-	gradnorm
+# basically just echo back to the user what dumbass settings they’ve picked
+function display_training_header!(nnet::MLP, h::TrainReport)
+    info("now training with the following parameters")
+    for p in h.train_parameters
+        print_with_color(:blue,"$(p[1]): $(p[2])\n")
+    end
+    @printf "-------------------------------------------\n"
 end
 
-function convg_check(r, nn, valx, valt, lastval)
-	converged = false
-	if length(valx) > 0
-		thisval = loss(prop(nn, valx), valt)
-		converged = thisval > lastval ? true : converged
-		lastval = thisval
-	end
-	lastval, converged
+function display_training_footer!(h::TrainReport, in_place::Bool)
+    in_place && print("\n")
+    i = h.iteration[end]
+    if h.trained
+        info("training converged after around $i iterations")
+    else
+        warn("training failed to converge after around $i iterations")
+    end
+end
+
+# display current training progress
+function display_status!(h::TrainReport; in_place=true)
+    if length(h.valid_error) < length(h.train_error) # if there's no validation set
+        if length(h.iteration) == 1
+            @printf "i: %9i   train error: %14e" h.iteration[end] h.train_error[end]
+        else
+            @printf "i: %9i" h.iteration[end]
+
+            train_color = h.train_error[end] < h.train_error[end-1] ? :green : :red
+            train_string = @sprintf "%14e" h.train_error[end]
+            print("   train error: ")
+            print_with_color(train_color, train_string)
+        end
+    else
+        if length(h.iteration) == 1
+            @printf "i: %9i   train error: %14e   valid. error: %14e\r" h.iteration[end] h.train_error[end] h.valid_error[end]
+        else
+            @printf "i: %9i" h.iteration[end]
+
+            train_color = h.train_error[end] < h.train_error[end-1] ? :green : :red
+            train_string = @sprintf "%14e" h.train_error[end]
+            print("   train error: ")
+            print_with_color(train_color, train_string)
+
+            valid_color = h.valid_error[end] < h.valid_error[end-1] ? :green : :red
+            valid_string = @sprintf "%14e" h.valid_error[end]
+            print("   valid. error: ")
+            print_with_color(valid_color, valid_string)
+        end
+    end
+    in_place ? print("\r") : print("\n")
 end

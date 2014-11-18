@@ -9,7 +9,7 @@ type NNLayer{T}
     b::AbstractVector{T}
     a::Function
     ad::Function
-    
+
     # sparsity
     sparse::Bool
     sparsecoef::T
@@ -22,7 +22,7 @@ NNLayer{T}(w::AbstractMatrix{T},b::AbstractVector{T},a::Function,ad::Function) =
 
 copy(l::NNLayer) = NNLayer(l.w,l.b,l.a,l.ad,l.sparse,l.sparsecoef,l.sparsity)
 
-type MLP <: NeuralNetwork
+type MLP
     net::Vector{NNLayer}
     dims::Vector{(Int,Int)}  # topology of net
     buf::AbstractVector      # in-place data store
@@ -31,13 +31,13 @@ type MLP <: NeuralNetwork
 end
 
 # placeholder types
-type DBN <: NeuralNetwork
-    stuff
-end
+# type DBN <: NeuralNetwork
+#     stuff
+# end
 
-type CNN <: NeuralNetwork
-    stuff
-end
+# type CNN <: NeuralNetwork
+#     stuff
+# end
 
 # In all operations between two NNLayers, the activations functions are taken from the first NNLayer
 applylayer(l::NNLayer, x::Array) = l.w*x .+ l.b
