@@ -22,7 +22,7 @@ NNLayer{T}(w::AbstractMatrix{T},b::AbstractVector{T},a::Function,ad::Function) =
 
 copy(l::NNLayer) = NNLayer(l.w,l.b,l.a,l.ad,l.sparse,l.sparsecoef,l.sparsity)
 
-type MultiLayerPerceptron
+type MultiLayerPerceptron <: NeuralNetwork
     net::Vector{NNLayer}
     dims::Vector{(Int,Int)}  # topology of net
     buf::AbstractVector      # in-place data store
@@ -30,14 +30,13 @@ type MultiLayerPerceptron
     trained::Bool
 end
 
-# placeholder types
-# type DBN <: NeuralNetwork
-#     stuff
-# end
+type DeepBeliefNetwork <: NeuralNetwork
+    stuff
+end
 
-# type CNN <: NeuralNetwork
-#     stuff
-# end
+type ConvolutionalNeuralNetwork <: NeuralNetwork
+    stuff
+end
 
 # In all operations between two NNLayers, the activations functions are taken from the first NNLayer
 applylayer(l::NNLayer, x::Array) = l.w*x .+ l.b
