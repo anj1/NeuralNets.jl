@@ -4,7 +4,7 @@ type TrainReport
     iteration::Vector{Int}
     train_error::Vector{Real}
     valid_error::Vector{Real}
-    trained::Bool
+    converged::Bool
 
     function TrainReport(algorithm::String,train_parameters::Dict)
         new(algorithm,train_parameters,Int[],Real[],Real[],false)
@@ -20,7 +20,7 @@ function diagnostic_trace!(h::TrainReport,
                            show_trace::Bool,
                            in_place::Bool,
                            converged::Bool)
-    converged && (h.trained = converged)
+    converged && (h.converged = converged)
     if valid # if a validation set is present
         push!(h.iteration, i)
         push!(h.train_error, train_error)
@@ -68,7 +68,7 @@ end
 function display_training_footer!(h::TrainReport, in_place::Bool)
     in_place && print("\n")
     i = h.iteration[end]
-    if h.trained
+    if h.converged
         info("training converged after around $i iterations")
     else
         warn("training failed to converge after around $i iterations")
