@@ -4,6 +4,8 @@ using Optim
 using ArrayViews
 
 import Optim:levenberg_marquardt
+import Base: show, push!
+
 
 # functions
 export train, gdmtrain, adatrain, prop
