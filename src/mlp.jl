@@ -27,11 +27,22 @@ type MultiLayerPerceptron <: NeuralNetwork
     dims::Vector{(Int,Int)}  # topology of net
     buf::AbstractVector      # in-place data store
     offs::Vector{Int}    # indices into in-place store
-    trained::Bool
+    report
 end
 
-type DeepBeliefNetwork <: NeuralNetwork
-    stuff
+function Base.show(io::IO, mlp::MultiLayerPerceptron)
+    @printf "Multilayer Perceptron\n"
+    @printf "---------------------\n"
+    for i = 1:length(mlp.net)
+        nnl = mlp.net[i]
+        n = size(nnl.w,1)
+        nodestr = n == 1 ? "$n node" : "$n nodes"
+        print_with_color(:blue,"Layer $i: $nodestr, $(nnl.a) activation\n")
+        println("weights:")
+        println(nnl.w)
+        println("bias:")
+        println(nnl.b)
+    end
 end
 
 type ConvolutionalNeuralNetwork <: NeuralNetwork
@@ -55,8 +66,8 @@ function Base.show(io::IO, l::NNLayer)
     print(io, summary(l),":\n")
     print(io, "activation functions:\n")
     print(io, l.a,", ",l.ad,"\n")
-    print(io, "node weights:\n",l.w,"\n")
-    print(io, "bias weights:\n",l.b)
+    print(io, "weights:\n",l.w,"\n")
+    print(io, "bias:\n",l.b)
 end
 
 # For the NNLayer type, given a set of layer dimensions,
@@ -93,7 +104,7 @@ function MultiLayerPerceptron(genf::Function, layer_sizes::Vector{Int}, act::Vec
 
 	net = [NNLayer(Array(eltype(buf),0,0),Array(eltype(buf),0),act[i],actd[i]) for i=1:nlayers]
 
-	mlp = MultiLayerPerceptron(net, dims, buf, offs, false)
+	mlp = MultiLayerPerceptron(net, dims, buf, offs, nothing)
 	unflatten_net!(mlp, buf)
 
 	mlp
@@ -103,7 +114,7 @@ end
 function autenc(::Type{MultiLayerPerceptron}, l::NNLayer, act, actd)
 	dims = [size(l.w), size(l.w')]
 	net = [l, NNLayer(l.w', zeros(size(l.w,2)), act, actd)]
-	mlp = MultiLayerPerceptron(net, dims, [], [], false)
+	mlp = MultiLayerPerceptron(net, dims, [], [], nothing)
 end
 
 # Given a flattened vector (buf), update the neural
