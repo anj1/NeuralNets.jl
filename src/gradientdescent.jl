@@ -9,7 +9,9 @@
 # verbose:  train with printed feedback about the error function
 function gdmtrain(mlp::MultiLayerPerceptron,
                   x,
-                  t;
+                  t,
+                  x_valid=nothing,
+                  t_valid=nothing;
                   batch_size=size(x,2),
                   maxiter::Int=1000,
                   tol::Real=1e-5,
@@ -19,12 +21,16 @@ function gdmtrain(mlp::MultiLayerPerceptron,
                   show_trace::Bool=true,
                   store_trace::Bool=false,
                   in_place::Bool=true)
-    valid::Bool = false
+    valid = !all([typeof(x_valid), typeof(t_valid)].== Nothing) # validation set present?
 
     η, c, m, b = learning_rate, tol, momentum_rate, batch_size
-    i = e_old = e_valid = Δw_old = 0
-    e_train = loss(prop(mlp,x),t)
+    i = e_old = Δw_old = 0
     converged::Bool = false
+
+    e_train = loss(prop(mlp,x),t)
+    e_valid = valid ? loss(prop(mlp,x_valid),t_valid) : 0
+
+    # Start reporting and display diagnostic trace
     params = Dict(["Batch size"=>batch_size,
                    "Max iterations"=>maxiter,
                    "Learning rate"=>learning_rate])
@@ -45,7 +51,8 @@ function gdmtrain(mlp::MultiLayerPerceptron,
         if i % eval == 0  # recalculate loss every eval number iterations
             e_old = e_train
             e_train = loss(prop(mlp,x),t)
-            valid && (e_valid = loss(prop(mlp,x),t))
+            e_valid = valid ? loss(prop(mlp,x_valid),t_valid) : 0
+
             converged = abs(e_train - e_old) < c # check if converged
             diagnostic_trace!(
                 report, i, e_train, e_valid, valid, show_trace, in_place, converged)
@@ -53,7 +60,8 @@ function gdmtrain(mlp::MultiLayerPerceptron,
     end
 
     display_training_footer!(report,in_place)
-    store_trace ? (return mlp,report) : (return mlp)
+    store_trace && (mlp.report = report)
+    return mlp
 end
 
 # Train a MultiLayerPerceptron using Adagrad
