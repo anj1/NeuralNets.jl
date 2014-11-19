@@ -37,7 +37,7 @@ function Base.show(io::IO, mlp::MultiLayerPerceptron)
         nnl = mlp.net[i]
         n = size(nnl.w,1)
         nodestr = n == 1 ? "$n node" : "$n nodes"
-        print_with_color(:blue,"Layer $i: $nodestr, $(nnl.a) activation\n")
+        println("Layer $i: $nodestr, $(nnl.a) activation")
         println("weights:")
         println(nnl.w)
         println("bias:")

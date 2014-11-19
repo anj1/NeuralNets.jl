@@ -1,3 +1,9 @@
+# select some random subset of the data of size b
+function batch(b::Int,x,t)
+    subset = rand(1:size(x,2),b)
+    return x[:,subset],t[:,subset]
+end
+
 # Train a MultiLayerPerceptron using gradient decent with momentum.
 # mlp.net:  array of neural network layers
 # x:        input data
