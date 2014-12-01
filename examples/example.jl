@@ -13,7 +13,8 @@ t = [
 # network topology
 layer_sizes = [2, 3, 3, 1]
 act = [relu,  relu,  logis]
+actd = [relud, relud, logisd]
 
 # initialize net
-mlp = MultiLayerPerceptron(randn, layer_sizes, act)
-gdmtrain(mlp, x, t, x, t; store_trace=true, in_place=false)
+mlp = MLP(randn, layer_sizes, act, actd)
+gdmtrain(mlp, x, t, x, t; show_trace=true)

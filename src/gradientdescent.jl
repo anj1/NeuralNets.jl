@@ -4,7 +4,7 @@ function batch(b::Int,x,t)
     return x[:,subset],t[:,subset]
 end
 
-# Train a MultiLayerPerceptron using gradient decent with momentum.
+# Train a MLP using gradient decent with momentum.
 # mlp.net:  array of neural network layers
 # x:        input data
 # t:        target data
@@ -13,7 +13,7 @@ end
 # c:        convergence criterion
 # eval:     how often we evaluate the loss function
 # verbose:  train with printed feedback about the error function
-function gdmtrain(mlp::MultiLayerPerceptron,
+function gdmtrain(mlp::MLP,
                   x,
                   t,
                   x_valid=nothing,
@@ -24,9 +24,7 @@ function gdmtrain(mlp::MultiLayerPerceptron,
                   learning_rate=.3,
                   momentum_rate=.6,
                   eval::Int=10,
-                  show_trace::Bool=true,
-                  store_trace::Bool=false,
-                  in_place::Bool=true)
+                  show_trace::Bool=false)
     valid = !all([typeof(x_valid), typeof(t_valid)].== Nothing) # validation set present?
 
     η, c, m, b = learning_rate, tol, momentum_rate, batch_size
@@ -35,15 +33,6 @@ function gdmtrain(mlp::MultiLayerPerceptron,
 
     e_train = loss(prop(mlp,x),t)
     e_valid = valid ? loss(prop(mlp,x_valid),t_valid) : 0
-
-    # Start reporting and display diagnostic trace
-    params = Dict(["Batch size"=>batch_size,
-                   "Max iterations"=>maxiter,
-                   "Learning rate"=>learning_rate])
-    report = TrainReport("Stochastic Gradient Descent",params)
-    display_training_header!(mlp, report)
-    diagnostic_trace!(
-        report, i, e_train, e_valid, valid, show_trace, in_place, converged)
 
     n = size(x,2)
     while (!converged && i < maxiter)
@@ -60,17 +49,16 @@ function gdmtrain(mlp::MultiLayerPerceptron,
             e_valid = valid ? loss(prop(mlp,x_valid),t_valid) : 0
 
             converged = abs(e_train - e_old) < c # check if converged
-            diagnostic_trace!(
-                report, i, e_train, e_valid, valid, show_trace, in_place, converged)
+            # TODO: check for convergence with validation set
+            diagnostic_trace!(mlp.report, e_train, e_valid, valid, show_trace)
         end
     end
+    converged ? println("\nTraining converged.") : println("\nTraining did not converge.")
 
-    display_training_footer!(report,in_place)
-    store_trace && (mlp.report = report)
-    return mlp
+    mlp
 end
 
-# Train a MultiLayerPerceptron using Adagrad
+# Train a MLP using Adagrad
 # mlp.net:  array of neural network layers
 # x:        input data
 # t:        target data
@@ -79,7 +67,7 @@ end
 # ε:        small constant for numerical stability
 # eval:     how often we evaluate the loss function
 # verbose:  train with printed feedback about the error function
-function adatrain(mlp::MultiLayerPerceptron,
+function adatrain(mlp::MLP,
                   x,
                   t;
                   batch_size=size(x,2),
@@ -109,8 +97,8 @@ function adatrain(mlp::MultiLayerPerceptron,
             e_old = e_new
             e_new = loss(prop(mlp.net,x),t)
             converged = abs(e_new - e_old) < c # check if converged
-            diagnostic!(
-                e_list, e_old, e_new, n, i, store_trace, show_trace,converged)
+            # TODO: check for convergence with validation set
+            diagnostic_trace!(report, i, e_train, e_valid, valid, show_trace)
         end
     end
     convgstr = converged ? "converged" : "didn't converge"

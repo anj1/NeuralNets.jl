@@ -1,5 +1,5 @@
-# Train a MultiLayerPerceptron using Levenberg-Marquardt optimisation.
-function lmtrain(mlp::MultiLayerPerceptron,
+# Train a MLP using Levenberg-Marquardt optimisation.
+function lmtrain(mlp::MLP,
                  x,
                  t;
                  iterations::Int=1000,

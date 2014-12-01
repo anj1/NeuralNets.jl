@@ -12,17 +12,16 @@ export train, gdmtrain, adatrain, prop
 export logis, logisd, logissafe, logissafed, relu, relud, ident, identd, tanhd
 
 # types
-export MultiLayerPerceptron, NNLayer
+export MLP, NNLayer
 
 # multi-layer perceptrons
+include("train.jl")
 include("activations.jl")
-include("losses.jl")
+#include("losses.jl")
 include("mlp.jl")
 
 # training
 include("backprop.jl")
-include("train.jl")
-include("optim_train.jl")
 include("gradientdescent.jl")
-include("lmtrain.jl")
+#include("lmtrain.jl")
 end

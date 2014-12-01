@@ -1,3 +1,5 @@
+loss(y, t) = 0.5 * norm(y .- t).^2 
+
 function prop(net, x)
 	if length(net) == 0 # First layer
 		x
@@ -6,7 +8,7 @@ function prop(net, x)
 	end
 end
 
-prop(mlp::MultiLayerPerceptron,x) = prop(mlp.net,x)
+prop(mlp::MLP,x) = prop(mlp.net,x)
 
 # add some 'missing' functionality to ArrayViews
 function setindex!{T}(dst::ContiguousView, src::Array{T}, idx::UnitRange)
