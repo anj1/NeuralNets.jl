@@ -16,14 +16,14 @@ Some less exciting features:
 Over time we hope to develop this library to encompass more modern types of neural networks, namely deep belief networks.
 
 ## Usage
-Currently we only have support for multi-layer perceptrons, these are instantiated by using the `MultiLayerPerceptron(genf,layer_sizes,act)` constructor  to describe the network topology and initialisation procedure as follows:
+Currently we only have support for multi-layer perceptrons, these are instantiated by using the `MLP(genf,layer_sizes,act)` constructor  to describe the network topology and initialisation procedure as follows:
 * `genf::Function` is the function we use to initialise the weights (commonly `rand` or `randn`);
 * `layer_sizes::Vector{Int}` is a vector whose first element is the number of input nodes, and the last element is the number of output nodes, intermediary elements are the numbers of hidden nodes per layer;
 * `act::Vector{Function}` is the vector of activation functions corresponding to each layer.
 
-For example, `MultiLayerPerceptron(randn, [4,8,8,2], [relu,logis,ident])` returns a 3-layer network with 4 input nodes, 2 output nodes, and two hidden layers comprised of 8 nodes each. The first hidden layer uses a `relu` activation function, the second uses `logis`. The output nodes lack any activation function and so we specify them with the `ident` 'function'—but this could just as easily be another `logis` to ensure good convergence behaviour on a 1-of-k target vector like you might use with a classification problem.
+For example, `MLP(randn, [4,8,8,2], [relu,logis,ident])` returns a 3-layer network with 4 input nodes, 2 output nodes, and two hidden layers comprised of 8 nodes each. The first hidden layer uses a `relu` activation function, the second uses `logis`. The output nodes lack any activation function and so we specify them with the `ident` 'function'—but this could just as easily be another `logis` to ensure good convergence behaviour on a 1-of-k target vector like you might use with a classification problem.
 
-Once your neural network is initialised (and trained), predictions are made with the `prop(mlp::MultiLayerPerceptron,x)` command, where `x` is a column vector of the node inputs. Of course `prop()` is also defined on arrays, so inputting a k by n array of data points returns a j by n array of predictions, where k is the number of input nodes, and j is the number of output nodes.
+Once your neural network is initialised (and trained), predictions are made with the `prop(mlp::MLP,x)` command, where `x` is a column vector of the node inputs. Of course `prop()` is also defined on arrays, so inputting a k by n array of data points returns a j by n array of predictions, where k is the number of input nodes, and j is the number of output nodes.
 
 ### Activation Functions
 There is 'native' support for the following activation functions. If you define an arbitrary activation function its derivative is calculated automatically using the [ForwardDiff.jl](https://github.com/JuliaDiff/ForwardDiff.jl) package. The natively supported activation derivatives are a bit over twice as fast to evaluate compared with derivatives calculated using [ForwardDiff.jl](https://github.com/JuliaDiff/ForwardDiff.jl).
@@ -34,7 +34,7 @@ There is 'native' support for the following activation functions. If you define 
 * `tanh` hyperbolic tangent as it is already defined in Julia.
 
 ### Training Methods
-Once the MultiLayerPerceptron type is constructed we train it using one of several provided training functions.
+Once the MLP type is constructed we train it using one of several provided training functions.
 
 * `train(nn, trainx, valx, traint, valt)`: This training method relies on calling the external [Optim.jl](https://github.com/JuliaOpt/Optim.jl) package. By default it uses the `gradient_descent` algorithm. However, by setting the `train_method` parameter, the following algorithms can also be selected: `levenberg_marquardt`, `momentum_gradient_descent`, or `nelder_mead`. The function accepts two data sets: the training data set (inputs and outputs given with `trainx` and `traint`) and the validation set (`valx`, `valt`). Input data must be a matrix with each data point occuring as a column of the matrix. Optional parameters include:
     * `maxiter` (default: 100): Number of iterations before giving up.
