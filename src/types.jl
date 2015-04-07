@@ -1,3 +1,4 @@
+using DBI
 abstract AbstractPostgresType
 type PostgresType{Name} <: AbstractPostgresType end
 
@@ -29,6 +30,7 @@ end
 # @pgtype PostgresBlankPaddedChar 1042
 # @pgtype PostgresVarChar 1043
 # @pgtype PostgresUnknown 705
+# @pgtype PostgresDate 1082
 
 @pgtype :bool 16
 @pgtype :bytea 17
@@ -42,6 +44,7 @@ end
 @pgtype :text 25
 @pgtype :unknown 705
 @pgtype :numeric 1700
+@pgtype :varchar 1082
 
 typealias PGStringTypes Union(Type{PostgresType{:bpchar}},
                               Type{PostgresType{:varchar}},
