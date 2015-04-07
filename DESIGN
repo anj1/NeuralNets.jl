@@ -1,0 +1,7 @@
+Package architecture:
+
+To interface with external libraries, as well as use auto-verification, the network is represented a homogeneous 'flat' array of floats. For evaluating the net and for backpropagation, this array of floats is 'unflattened' into a neural network structure. Various kinds of neural network structure are possible; multi-layer perceptrons are given in mlp.jl.
+
+Thus the package has 3 different 'levels': the level of the blind network representation (train.jl and verify.jl), the generic backpropagation code (backprop.jl), and type-specific code.
+
+To start understanding the code, it's best to first look at the call to optimize() in train.jl:train(). This function call contains the basic architecture of the package. Then look at the backprop!() code.
