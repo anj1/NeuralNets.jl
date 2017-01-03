@@ -19,7 +19,7 @@ function diagnostic_trace!(h::TrainReport,
         push!(h.valid_error, valid_error)
     end
     if show_trace
-        if valid
+        if !valid
             print("training error: $train_error\r")
         else
             print("training error: $train_error, validation error: $valid_error\r")
