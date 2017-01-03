@@ -16,8 +16,8 @@ end
 function gdmtrain(mlp::MLP,
                   x,
                   t,
-                  x_valid=nothing,
-                  t_valid=nothing;
+                  x_valid=Void,
+                  t_valid=Void;
                   batch_size=size(x,2),
                   maxiter::Int=1000,
                   tol::Real=1e-5,
@@ -25,7 +25,8 @@ function gdmtrain(mlp::MLP,
                   momentum_rate=.6,
                   eval::Int=10,
                   show_trace::Bool=false)
-    valid = !all([typeof(x_valid), typeof(t_valid)].== Nothing) # validation set present?
+
+    valid = !(x_valid == Void || t_valid == Void) # validation set present?
 
     η, c, m, b = learning_rate, tol, momentum_rate, batch_size
     i = e_old = Δw_old = 0
@@ -46,10 +47,15 @@ function gdmtrain(mlp::MLP,
         if i % eval == 0  # recalculate loss every eval number iterations
             e_old = e_train
             e_train = loss(prop(mlp,x),t)
-            e_valid = valid ? loss(prop(mlp,x_valid),t_valid) : 0
 
-            converged = abs(e_train - e_old) < c # check if converged
-            # TODO: check for convergence with validation set
+            if !valid
+                converged = abs(e_train - e_old) < c # check if converged
+            else
+              e_old_valid = e_valid
+              e_valid = loss(prop(mlp,x_valid),t_valid)
+              converged = abs(e_train - e_old_valid) < c # check if converged
+            end
+
             diagnostic_trace!(mlp.report, e_train, e_valid, valid, show_trace)
         end
     end
@@ -69,7 +75,9 @@ end
 # verbose:  train with printed feedback about the error function
 function adatrain(mlp::MLP,
                   x,
-                  t;
+                  t,
+                  x_valid=Void,
+                  t_valid=Void;
                   batch_size=size(x,2),
                   maxiter::Int=1000,
                   tol::Real=1e-5,
@@ -79,9 +87,12 @@ function adatrain(mlp::MLP,
                   store_trace::Bool=false,
                   show_trace::Bool=false)
 
+    valid = !(x_valid == Void || t_valid == Void) # validation set present?
+
     η, c, λ, b = learning_rate, tol, lambda, batch_size
     i = e_old = Δnet = sumgrad = 0
-    e_new = loss(prop(mlp.net,x),t)
+    e_train = loss(prop(mlp.net,x),t)
+    e_valid = valid ? loss(prop(mlp,x_valid),t_valid) : 0
     n = size(x,2)
     converged::Bool = false
     e_list = []
@@ -94,15 +105,22 @@ function adatrain(mlp::MLP,
         mlp.net = mlp.net .- Δw                 # update weights
 
         if i % eval == 0  # recalculate loss every eval number iterations
-            e_old = e_new
-            e_new = loss(prop(mlp.net,x),t)
-            converged = abs(e_new - e_old) < c # check if converged
-            # TODO: check for convergence with validation set
-            diagnostic_trace!(report, i, e_train, e_valid, valid, show_trace)
+            e_old = e_train
+            e_train = loss(prop(mlp,x),t)
+
+            if !valid
+              converged = abs(e_train - e_old) < c # check if converged
+            else
+              e_old_valid = e_valid
+              e_valid = loss(prop(mlp,x_valid),t_valid)
+              converged = abs(e_train - e_old) < c # check if converged
+            end
+
+            diagnostic_trace!(mlp.report, e_train, e_valid, valid, show_trace)
         end
     end
     convgstr = converged ? "converged" : "didn't converge"
-    println("Training $convgstr in less than $i iterations; average error: $(round((e_new/n),4)).")
+    println("Training $convgstr in less than $i iterations; average error: $(round(((valid ? e_valid : e_train)/n),4)).")
     println("* learning rate η = $η")
     println("* convergence criterion c = $c")
     return mlp, e_list
