@@ -6,6 +6,17 @@ using ArrayViews
 import Optim:levenberg_marquardt
 import Base: show
 
+# Not importing these results in warnings
+import Base:.*
+import Base:*
+import Base:/
+import Base:^
+import Base:-
+import Base:.-
+import Base:+
+import Base:.+
+import Base:setindex!
+
 
 # functions
 export train, gdmtrain, adatrain, prop
